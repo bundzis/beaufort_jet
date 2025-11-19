@@ -175,7 +175,8 @@
         END DO
       END IF
 
-#elif defined BEAUFORT_JET
+#elif defined(BEAUFORT_JET_ICE_BULK_FLUXES) || \
+      defined(BEAUFORT_JET_UNFORCED_NO_ICE)
 !
 !  Set M2 nudging coefficients in the southern northern edges
 !  with a time scale ranging from 10 s at the boundary to 1000 s 

@@ -193,17 +193,17 @@ ad_Vadvection == C4       \                     ! temperature
 
 ! Ice boundary conditions
 
-   LBC(isAice) ==   Per     Clo     Per     Gra         ! ice concentration
-   LBC(isHice) ==   Per     Clo     Per     Gra         ! ice thickness
-   LBC(isHmel) ==   Per     Clo     Per     Gra         ! meltpond thickness ! BU
-   LBC(isHsno) ==   Per     Clo     Per     Gra         ! snow thickness
-   LBC(isTice) ==   Per     Clo     Per     Gra         ! ice temperature
-   LBC(isIage) ==   Per     Clo     Per     Gra         ! ice age ! BU
-   LBC(isISxx) ==   Per     Clo     Per     Gra         ! sigma-11
-   LBC(isISxy) ==   Per     Clo     Per     Gra         ! sigma-12
-   LBC(isISyy) ==   Per     Clo     Per     Gra         ! sigma-22
-   LBC(isUice) ==   Per     Clo     Per     Gra         ! ice U-momentum
-   LBC(isVice) ==   Per     Clo     Per     Gra         ! ice V-momentum
+   LBC(isAice) ==   Per     Clo     Per     Clo         ! ice concentration
+   LBC(isHice) ==   Per     Clo     Per     Clo         ! ice thickness
+   LBC(isHmel) ==   Per     Clo     Per     Clo         ! meltpond thickness ! BU
+   LBC(isHsno) ==   Per     Clo     Per     Clo         ! snow thickness
+   LBC(isTice) ==   Per     Clo     Per     Clo         ! ice temperature
+   LBC(isIage) ==   Per     Clo     Per     Clo         ! ice age ! BU
+   LBC(isISxx) ==   Per     Clo     Per     Clo         ! sigma-11
+   LBC(isISxy) ==   Per     Clo     Per     Clo         ! sigma-12
+   LBC(isISyy) ==   Per     Clo     Per     Clo         ! sigma-22
+   LBC(isUice) ==   Per     Clo     Per     Clo         ! ice U-momentum
+   LBC(isVice) ==   Per     Clo     Per     Clo        ! ice V-momentum
 
 ! Waves Effect on Currents lateral boundary conditions.
 
@@ -241,7 +241,7 @@ ad_VolCons(south) ==  F                            ! southern boundary
 ad_VolCons(north) ==  F                            ! northern boundary
 
 ! Time-Stepping parameters
-      NTIMES == 86400        ! 60 days with DT = 60
+      NTIMES == 172800       ! 120 days with DT = 60
           DT == 60.0d0       ! 5.0d0
      NDTFAST == 30           ! 20
 
@@ -336,7 +336,7 @@ ad_VolCons(north) ==  F                            ! northern boundary
 ! and/or diffusivity in specific areas of the application domain (like
 ! sponge areas) for the desired application grid.
 
-    LuvSponge == T                              ! horizontal momentum
+    LuvSponge == F                              ! horizontal momentum
 LtracerSponge == F F F F F F F F                ! temperature, salinity, inert
 
 ! Vertical mixing coefficients for tracers in nonlinear model and
@@ -469,8 +469,8 @@ LtracerSponge == F F F F F F F F                ! temperature, salinity, inert
 ! Linear equation of State parameters:
 
           R0 == 1025.0d0                   ! kg/m3
-          T0 == 1.0d0                      ! Celsius
-          S0 == 30.0d0                     ! nondimensional
+          T0 == 2.0d0                      ! Celsius
+          S0 == 34.0d0                     ! nondimensional
        TCOEF == 1.7d-4                     ! 1/Celsius
        SCOEF == 7.6d-4                     ! nondimensional
 
@@ -495,8 +495,8 @@ LtracerSponge == F F F F F F F F                ! temperature, salinity, inert
 ! See glossary below for details.
 
      LsshCLM == F                          ! sea-surface height
-      Lm2CLM == T                          ! 2D momentum
-      Lm3CLM == T                          ! 3D momentum
+      Lm2CLM == F                          ! 2D momentum
+      Lm3CLM == F                          ! 3D momentum
 
   LtracerCLM == F F            ! temperature, salinity, inert
 
@@ -1237,7 +1237,7 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
      SPARNAM =  ROMS/External/sediment.in
      VEGNAME =  ROMS/External/vegetation.in
      USRNAME =  ROMS/External/MyFile.dat
-     IPARNAM = /pscratch/sd/d/dylan617/roms/beaufort_runs/ice.in
+     IPARNAM =  ice.in
 
 !
 !  GLOSSARY:

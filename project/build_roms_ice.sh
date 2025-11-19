@@ -158,7 +158,7 @@ done
 # determine the name of the ".h" header file with the application
 # CPP definitions.
 
-export   ROMS_APPLICATION=BEAUFORT_JET_UNFORCED_ICE
+export   ROMS_APPLICATION=BEAUFORT_JET_ICE_BULK_FLUXES
 
 # Set a local environmental variable to define the path to the directories
 # where the ROMS source code is located (MY_ROOT_DIR), and this project's

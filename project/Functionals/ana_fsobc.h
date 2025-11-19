@@ -1,10 +1,11 @@
+!
       SUBROUTINE ana_fsobc (ng, tile, model)
 !
-!! svn $Id: ana_fsobc.h 751 2015-01-07 22:56:36Z arango $
+!! git $Id$
 !!======================================================================
-!! Copyright (c) 2002-2015 The ROMS/TOMS Group                         !
+!! Copyright (c) 2002-2025 The ROMS Group                              !
 !!   Licensed under a MIT/X style license                              !
-!!   See License_ROMS.txt                                              !
+!!   See License_ROMS.md                                               !
 !=======================================================================
 !                                                                      !
 !  This routine sets free-surface open boundary conditions using       !
@@ -18,7 +19,12 @@
 ! Imported variable declarations.
 !
       integer, intent(in) :: ng, tile, model
-
+!
+! Local variable declarations.
+!
+      character (len=*), parameter :: MyFile =                          &
+     &  __FILE__
+!
 #include "tile.h"
 !
       CALL ana_fsobc_tile (ng, tile, model,                             &
@@ -32,9 +38,9 @@
 #else
       IF (Lanafile.and.(tile.eq.0)) THEN
 #endif
-        ANANAME( 6)=__FILE__
+        ANANAME( 6)=MyFile
       END IF
-
+!
       RETURN
       END SUBROUTINE ana_fsobc
 !
@@ -59,6 +65,7 @@
 !  Local variable declarations.
 !
       integer :: i, j
+!
       real(r8) :: cff, fac, omega, phase, val
 
 #include "set_bounds.h"
@@ -196,16 +203,6 @@
         END DO
       END IF
 #endif
-      
-#if defined SOUTH_FSOBC
-      IF (LBC(isouth,isFsur,ng)%acquire.and.                            &
-     &    DOMAIN(ng)%Southern_Edge(tile)) THEN
-        cff= 0.25_r8*sin(2.0_r8*pi*time(ng)/(12.42_r8*3600.0_r8))
-        DO i=IstrT,IendT
-          BOUNDARY(ng)%zeta_south(i)=cff
-        END DO
-      END IF
-#endif
-      
+!
       RETURN
       END SUBROUTINE ana_fsobc_tile

@@ -68,7 +68,7 @@
 
 ! C-preprocessing Flag.
 
-    MyAppCPP = BEAUFORT_JET_UNFORCED_ICE
+    MyAppCPP = BEAUFORT_JET_ICE_BULK_FLUXES
 
 ! Input variable information file name.  This file needs to be processed
 ! first so all information arrays can be initialized properly.
@@ -106,7 +106,7 @@ GridsInLayer =  1
 ! shared-memory configurations used to determine tile horizontal range
 ! indices (Istr,Iend) and (Jstr,Jend), [1:Ngrids].
 
-      NtileI == 16                               ! I-direction partition
+      NtileI == 8                               ! I-direction partition
       NtileJ == 16                                ! J-direction partition
 
 ! Set horizontal and vertical advection schemes for active and inert
@@ -193,17 +193,17 @@ ad_Vadvection == C4       \                     ! temperature
 
 ! Ice boundary conditions
 
-   LBC(isAice) ==   Per     Clo     Per     Gra         ! ice concentration
-   LBC(isHice) ==   Per     Clo     Per     Gra         ! ice thickness
-   LBC(isHmel) ==   Per     Clo     Per     Gra         ! meltpond thickness ! BU
-   LBC(isHsno) ==   Per     Clo     Per     Gra         ! snow thickness
-   LBC(isTice) ==   Per     Clo     Per     Gra         ! ice temperature
-   LBC(isIage) ==   Per     Clo     Per     Gra         ! ice age ! BU
-   LBC(isISxx) ==   Per     Clo     Per     Gra         ! sigma-11
-   LBC(isISxy) ==   Per     Clo     Per     Gra         ! sigma-12
-   LBC(isISyy) ==   Per     Clo     Per     Gra         ! sigma-22
-   LBC(isUice) ==   Per     Clo     Per     Gra         ! ice U-momentum
-   LBC(isVice) ==   Per     Clo     Per     Gra         ! ice V-momentum
+   LBC(isAice) ==   Per     Clo     Per     Clo         ! ice concentration
+   LBC(isHice) ==   Per     Clo     Per     Clo         ! ice thickness
+   LBC(isHmel) ==   Per     Clo     Per     Clo         ! meltpond thickness ! BU
+   LBC(isHsno) ==   Per     Clo     Per     Clo         ! snow thickness
+   LBC(isTice) ==   Per     Clo     Per     Clo         ! ice temperature
+   LBC(isIage) ==   Per     Clo     Per     Clo         ! ice age ! BU
+   LBC(isISxx) ==   Per     Clo     Per     Clo         ! sigma-11
+   LBC(isISxy) ==   Per     Clo     Per     Clo         ! sigma-12
+   LBC(isISyy) ==   Per     Clo     Per     Clo         ! sigma-22
+   LBC(isUice) ==   Per     Clo     Per     Clo         ! ice U-momentum
+   LBC(isVice) ==   Per     Clo     Per     Clo         ! ice V-momentum
 
 ! Waves Effect on Currents lateral boundary conditions.
 
@@ -241,7 +241,7 @@ ad_VolCons(south) ==  F                            ! southern boundary
 ad_VolCons(north) ==  F                            ! northern boundary
 
 ! Time-Stepping parameters
-      NTIMES == 86400        ! 60 days with DT = 60
+      NTIMES == 172800       ! 120 days with DT = 60
           DT == 60.0d0       ! 5.0d0
      NDTFAST == 30           ! 20
 
@@ -274,7 +274,7 @@ ad_VolCons(north) ==  F                            ! northern boundary
         NRST == 0
         NSTA == 0
         NFLT == 60 ! Every hour for DT = 60
-       NINFO == 60
+       NINFO == 1
 
 ! Output history, quicksave, average, and diagnostic files parameters.
 
@@ -336,7 +336,7 @@ ad_VolCons(north) ==  F                            ! northern boundary
 ! and/or diffusivity in specific areas of the application domain (like
 ! sponge areas) for the desired application grid.
 
-    LuvSponge == T                              ! horizontal momentum
+    LuvSponge == F                              ! horizontal momentum
 LtracerSponge == F F F F F F F F                ! temperature, salinity, inert
 
 ! Vertical mixing coefficients for tracers in nonlinear model and
@@ -495,8 +495,8 @@ LtracerSponge == F F F F F F F F                ! temperature, salinity, inert
 ! See glossary below for details.
 
      LsshCLM == F                          ! sea-surface height
-      Lm2CLM == T                          ! 2D momentum
-      Lm3CLM == T                          ! 3D momentum
+      Lm2CLM == F                          ! 2D momentum
+      Lm3CLM == F                          ! 3D momentum
 
   LtracerCLM == F F            ! temperature, salinity, inert
 
@@ -1174,7 +1174,7 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
    NCLMFILES == 1                          ! number of climatology files
 
-     CLMNAME == roms_clm.nc
+     CLMNAME == ini_ice.nc
 
 
 ! Input climatology nudging coefficients file name.
@@ -1209,7 +1209,7 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
      NFFILES == 1                          ! number of unique forcing files
 
-     FRCNAME == roms_frc.nc
+     FRCNAME == test.nc
 
 ! Output NetCDF file names, [1:Ngrids].
 
@@ -1237,7 +1237,7 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
      SPARNAM =  ROMS/External/sediment.in
      VEGNAME =  ROMS/External/vegetation.in
      USRNAME =  ROMS/External/MyFile.dat
-     IPARNAM = //global/homes/d/dylan617/beaufort_jet/project/ice.in
+     IPARNAM = /global/homes/d/dylan617/beaufort_jet/project/ice.in
 
 !
 !  GLOSSARY:
