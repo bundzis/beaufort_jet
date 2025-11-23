@@ -9,11 +9,11 @@ To do, so this is more like a jet than a plume:
 This way, a jet can be prescribed. The plume edge looks like a jet with this bathymetric configuration, but we MUST 
 do better!
 
-Horizontal stratification is controlled by **salinity** (S), and vertical stratification is controlled by **temperature** (T). 
-The density is computed using a **linear equation of state**:
+Horizontal stratification is controlled by salinity (S), and vertical stratification is controlled by temperature (T). 
+The density is computed using a linear equation of state:
 
    R0    : 1025.0 kg/m³      # Reference density
-   T0    : 2.0 °C             # Reference temperature for linear stratification
+   T0    : 1.0 °C             # Reference temperature for linear stratification
    S0    : 34.0 PSU           # Reference salinity for linear stratification
    TCOEF : 1.7e-4 1/°C        # Thermal expansion coefficient
    SCOEF : 7.6e-4 1/PSU       # Saline contraction coefficient
@@ -26,7 +26,7 @@ Vertical grid parameters (S-coordinate):
 
 Lateral buoyancy parameters (for horizontal salinity gradient):
    M20   : 5e-7                # Maximum horizontal density gradient amplitude
-   M2_yo : 120e3               # Y-location of plume edge
+   M2_yo : 120e3               # Y-location of plume/jet edge
    M2_r  : 5e3                 # E-folding scale for horizontal stratification (m)
 
 Buoyancy frequency / vertical stratification (controls deformation radius):
@@ -42,6 +42,9 @@ Notes on deformation radius:
    => Adjusting N20, N2_zo, N2_r changes the first-mode baroclinic deformation radius.
 
 balanced_run : True/False     # If True, computes a balanced initial velocity from the density field
+lateral_strat_type:    # Sets whether the lateral stratification is a buoyant plume or jet
+    - Valid arguments: "plume", "jet"
+
 
 References: 
 - Hetland, R. D. (2017). Suppression of baroclinic instabilities in buoyancy-driven flow over sloping bathymetry. 
@@ -53,6 +56,10 @@ References:
 import numpy as np
 import xarray as xr
 from datetime import datetime
+import matplotlib.pyplot as plt
+import cmocean.cm as cmo
+import warnings
+warnings.filterwarnings("ignore") #turns off annoying warnings
 
 def get_depths(h, hc, s, Cs, dim):
     """SEE Eq. (2) or (3) on https://www.myroms.org/wiki/Vertical_S-coordinate"""
@@ -66,13 +73,14 @@ def C(theta_s, theta_b, s):
     else:
         return -C
 
-def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini.nc', 
-                    grd_path='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd.nc',
+def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_test.nc', 
+                    grd_path='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_test.nc',
                     zlevs=40, theta_s=5.0, theta_b=0.4, hc=5.0,
-                    T0=2.0, S0=34.0, TCOEF=1.7e-4, SCOEF=7.6e-4,
-                    M20=5e-7, M2_yo=120e3, M2_r=5e3,
-                    N20=1e-4, N2_zo=50.0, N2_r=50.0,
-                    balanced_run=True):
+                    T0=0.5, S0=34.0, TCOEF=1.7e-4, SCOEF=7.6e-4,
+                    M20=2e-7, M2_yo=120e3, M2_r=5e3,
+                    N20=5e-5, N2_zo=50.0, N2_r=50.0,
+                    balanced_run=True, lateral_strat_type = 'jet',
+                    y0_jet=110e3, L_jet = 10e3, M2_jet_amp=5e-7):
 
 
     grd = xr.open_dataset(grd_path)
@@ -86,8 +94,41 @@ def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized
     Cs_r = C(theta_s, theta_b, s_rho)
     Cs_w = C(theta_s, theta_b, s_w)
 
-    M2 = M20 * np.exp((M2_yo - grd.y_rho) / M2_r)
-    M2 = M2.where(grd.y_rho > M2_yo, M20)
+    # Create lateral stratification based on M2. The "plume" case is as described in Hetland (2017) and 
+    # Schlichting et al (2024)
+    if lateral_strat_type == "plume":
+        # Sketch of the stratification
+        # shore  |<---------- constant M20 ---------->| plume edge |<---- exponential decay offshore ----->| open ocean
+        # y<M2_yo                                y=M2_yo                                      y>M2_yo
+        M2 = M20 * np.exp((M2_yo - grd.y_rho) / M2_r)
+        M2 = M2.where(grd.y_rho > M2_yo, M20)
+    elif lateral_strat_type == "jet":
+        # Configure a jet superimposed onto a background plume. 
+        # To do! We need to constrain the jet to the pycnocline depth so that the alongshore velocity does 
+        # not get too big. 
+        
+        # -----------------------------
+        # 1. Plume
+        # -----------------------------
+        M2_plume = M20 * np.exp((M2_yo - grd.y_rho) / M2_r)
+        M2_plume = M2_plume.where(grd.y_rho > M2_yo, M20)
+
+        # -----------------------------
+        # 2. Jet (exists only within plume)
+        # -----------------------------
+        jet_mask = M2_plume > 0  # only inside plume region
+        M2_jet = M2_jet_amp * np.exp(-((grd.y_rho - y0_jet) / L_jet)**2) * jet_mask
+
+        # -----------------------------
+        # 3. Combine
+        # -----------------------------
+        M2 = M2_jet+M2_plume
+    else: 
+        raise ValueError(
+        f"Invalid lateral_strat_type='{lateral_strat_type}'. "
+        "Must be one of: 'plume', 'jet'."
+        )
+
     salt = (M2 * dy / g / SCOEF).cumsum(axis=0)
     salt -= salt[-1] - S0
     salt = salt.expand_dims('s_rho') * np.ones((zlevs, 1, 1), 'd')
@@ -193,8 +234,8 @@ def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized
     print('Writing netcdf INI file: '+output)
     ds.to_netcdf(output)
 
-def add_ice_to_ic(ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini.nc',
-                  ini_modified_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice.nc'):
+def add_ice_to_ic(ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_test.nc',
+                  ini_modified_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice_test.nc'):
     '''
     Adds ice variables to initial condition files. Currently, the model will start from an ice-free state,
     so all values are set to zero! 
@@ -246,6 +287,68 @@ def add_ice_to_ic(ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealiz
                               attrs={'units': 'Newton meter-1'})
     ds.to_netcdf(ini_modified_path)
 
+def plot_ic(grd_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_test.nc',
+            ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice_test.nc',
+            fig_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_conditions.png'):
+    '''
+    Plots ROMS initial conditions. 
+    '''
+    dsg = xr.open_dataset(grd_path)
+    ds = xr.open_dataset(ini_path)
+
+    # Convert to km
+    xrho = dsg.x_rho / 1000
+    xu = dsg.x_u / 1000
+    yrho = dsg.y_rho / 1000 
+    yu = dsg.y_u / 1000
+
+    temp = ds.temp[-1]
+    salt = ds.salt[-1]
+    u = ds.u[0,-1]
+
+    fig, ax = plt.subplots(1, 3, figsize=(9, 2.75),
+                       constrained_layout=True, 
+                       sharex=True, sharey=True, dpi=200)
+
+    # Temperature
+    m = ax[0].pcolormesh(xrho, yrho, temp, cmap=cmo.thermal)
+    fig.colorbar(m, ax=ax[0], label='[C]')
+
+    # Salinity
+    m1 = ax[1].pcolormesh(xrho, yrho, salt, cmap=cmo.haline)
+    fig.colorbar(m1, ax=ax[1], label='[g/kg]')
+
+    # U-velocity
+    m2 = ax[2].pcolormesh(xu, yu, u, cmap=cmo.amp)
+    fig.colorbar(m2, ax=ax[2], label='[m/s]')
+
+    # Set consistent axis limits
+    for a in ax:
+        a.set_xlabel('Along-shelf distance [km]')
+        a.set_aspect(1)
+
+    ax[0].set_ylabel('Across-shelf distance [km]')
+    ax[0].set_title('Surface temperature')
+    ax[1].set_title('Surface salinity')
+    ax[2].set_title('Surface alongshore velocity')
+
+    # Contours for bathymetry
+    positions = [(100, 10),(100,60),(100,90),(100,140),(100,160),(100,210)]
+    cs = ax[1].contour(xrho, yrho, dsg.h, levels=[10, 20, 50, 100, 500, 1000],
+                    colors='grey', linewidths=0.8)
+    ax[1].clabel(cs, fmt='%d m', manual=positions, inline=True, fontsize=8, colors='black')
+
+    plt.savefig(fig_path, dpi = 300, bbox_inches = 'tight')
+
+    print('inital conditions saved to '+fig_path)
+    print('Temperature min: ', ds.temp.min().values)
+    print('Temperature max: ', ds.temp.max().values)
+    print('Salinity min: ',   ds.salt.min().values)
+    print('Salinity max: ',   ds.salt.max().values)
+    print('U velocity min: ', ds.u.min().values)
+    print('U velocity max: ', ds.u.max().values)
+
 if __name__ == '__main__':
     make_ini_no_ice()
     add_ice_to_ic()
+    plot_ic()
