@@ -76,14 +76,17 @@ def C(theta_s, theta_b, s):
 def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_test.nc', 
                     grd_path='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_test.nc',
                     zlevs=40, theta_s=5.0, theta_b=0.4, hc=5.0,
-                    T0=0.5, S0=34.0, TCOEF=1.7e-4, SCOEF=7.6e-4,
-                    M20=2e-7, M2_yo=120e3, M2_r=5e3,
-                    N20=5e-5, N2_zo=50.0, N2_r=50.0,
+                    T0=0.5, S0=33.0, TCOEF=1.7e-4, SCOEF=7.6e-4,
+                    M20=3e-7, M2_yo=120e3, M2_r=5e3,
+                    N20=5e-5, N2_zo=-50.0, N2_r=-50.0,
                     balanced_run=True, lateral_strat_type = 'jet',
-                    y0_jet=110e3, L_jet = 10e3, M2_jet_amp=5e-7):
+                    y0_jet=110e3, L_jet = 10e3, M2_jet_amp=1e-7):
 
 
     grd = xr.open_dataset(grd_path)
+    Ld =  (np.sqrt(N20)*np.abs(N2_r)) / (grd.f.values[0,0])
+    print('Deformation radius in km, ', Ld/1000)
+
     g = 9.81
     dy = 1 / grd.pn
     # Vertical grid information
@@ -96,47 +99,71 @@ def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized
 
     # Create lateral stratification based on M2. The "plume" case is as described in Hetland (2017) and 
     # Schlichting et al (2024)
+    # -------------------------------------------------------------
+    # Compute vertical stratification (N^2) profile
+    # -------------------------------------------------------------
+    z = get_depths(grd.h, hc, s_rho, Cs_r, 's_rho')  # depth at rho points
+    N2 = N20 * np.exp(-(N2_zo - z) / N2_r)
+    N2 = N2.where(z > N2_zo, N20)
+    Hz = get_depths(grd.h, hc, s_w, Cs_w, 's_w').diff('s_w').rename({'s_w': 's_rho'})
+    Hz.coords['s_rho'] = s_rho
+
+    # Create lateral stratification based on M2. The "plume" case is as described in Hetland (2017) and 
+    # Schlichting et al (2024)
     if lateral_strat_type == "plume":
-        # Sketch of the stratification
-        # shore  |<---------- constant M20 ---------->| plume edge |<---- exponential decay offshore ----->| open ocean
-        # y<M2_yo                                y=M2_yo                                      y>M2_yo
+        # Original salt construction (constant horizontal density gradient)
         M2 = M20 * np.exp((M2_yo - grd.y_rho) / M2_r)
         M2 = M2.where(grd.y_rho > M2_yo, M20)
-    elif lateral_strat_type == "jet":
-        # Configure a jet superimposed onto a background plume. 
-        # To do! We need to constrain the jet to the pycnocline depth so that the alongshore velocity does 
-        # not get too big. 
         
+        salt = (M2 * dy / g / SCOEF).cumsum(axis=0)
+        salt -= salt[-1] - S0
+        salt = salt.expand_dims('s_rho') * np.ones((zlevs, 1, 1), 'd')
+        salt.coords['s_rho'] = s_rho
+
+    elif lateral_strat_type == "jet":
         # -----------------------------
-        # 1. Plume
+        # 1. Plume background (2D)
         # -----------------------------
         M2_plume = M20 * np.exp((M2_yo - grd.y_rho) / M2_r)
         M2_plume = M2_plume.where(grd.y_rho > M2_yo, M20)
 
-        # -----------------------------
-        # 2. Jet (exists only within plume)
-        # -----------------------------
-        jet_mask = M2_plume > 0  # only inside plume region
-        M2_jet = M2_jet_amp * np.exp(-((grd.y_rho - y0_jet) / L_jet)**2) * jet_mask
+        # Horizontal cumsum along y for plume only
+        salt_plume = (M2_plume * dy / g / SCOEF).cumsum(dim='eta_rho')
+
+        # Normalize to reference salinity
+        salt_plume -= salt_plume[-1] - S0
+
+        # Expand plume to full vertical
+        salt = salt_plume.expand_dims('s_rho') * np.ones((zlevs, 1, 1))
+        salt.coords['s_rho'] = s_rho
 
         # -----------------------------
-        # 3. Combine
+        # 2. Jet anomaly (vertical structure)
         # -----------------------------
-        M2 = M2_jet+M2_plume
-    else: 
-        raise ValueError(
-        f"Invalid lateral_strat_type='{lateral_strat_type}'. "
-        "Must be one of: 'plume', 'jet'."
+        # Define a strict lateral mask for the jet
+        jet_mask = np.abs(grd.y_rho - y0_jet) <= 2*L_jet  # ~2 std deviations of the Gaussian
+
+        # Jet amplitude in y only, masked laterally
+        M2_jet_y = M2_jet_amp * np.exp(-((grd.y_rho - y0_jet)/L_jet)**2) * jet_mask
+
+        # Vertical envelope (same dimensions as N2)
+        # Fz = N2 / N2.max(dim='s_rho')
+        # Fz = Fz.transpose('s_rho','eta_rho','xi_rho')
+
+        # Superimpose jet anomaly on plume
+        salt_jet_anomaly = xr.DataArray(
+            np.tile(M2_jet_y.values[np.newaxis, :, :], (zlevs, 1, 1)),
+            dims=('s_rho','eta_rho','xi_rho'),
+            coords={'s_rho': s_rho, 'eta_rho': grd.eta_rho, 'xi_rho': grd.xi_rho}
         )
 
-    salt = (M2 * dy / g / SCOEF).cumsum(axis=0)
-    salt -= salt[-1] - S0
-    salt = salt.expand_dims('s_rho') * np.ones((zlevs, 1, 1), 'd')
-    salt.coords['s_rho'] = s_rho
-    # (h, hc, s, Cs)
-    z = get_depths(grd.h, hc, s_rho, Cs_r, 's_rho')
-    Hz = get_depths(grd.h, hc, s_w, Cs_w, 's_w').diff('s_w').rename({'s_w': 's_rho'})
-    Hz.coords['s_rho'] = s_rho
+        salt += salt_jet_anomaly
+
+        # -----------------------------
+        # 3. Optional: total M2 (plume + jet)
+        # -----------------------------
+        M2 = M2_plume + M2_jet_y
+
 
     # -------------------------------------------------------------
     # Compute vertical stratification (N^2) and initialize temperature profile
@@ -164,12 +191,17 @@ def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized
     #   - Result: vertical temperature profile in approximate hydrostatic balance with N^2
     # -------------------------------------------------------------
 
-    N2 = N20 * np.exp(-(N2_zo - z) / N2_r)
-    N2 = N2.where(z > N2_zo, N20)
+    # N2 = N20 * np.exp(-(N2_zo - z) / N2_r)
+    # N2 = N2.where(z > N2_zo, N20)
+
+    # Make sure vertical is first, then eta_rho, xi_rho
+    N2 = N2.transpose('s_rho', 'eta_rho', 'xi_rho')
+    z  = z.transpose('s_rho', 'eta_rho', 'xi_rho')
+    salt = salt.transpose('s_rho', 'eta_rho', 'xi_rho')
 
     temp = xr.zeros_like(salt)
     for n in range(zlevs):
-        temp[n] = T0 - np.trapz(N2[n:] / (g * TCOEF), x=z[n:], axis=0)
+        temp[n] = T0 - np.trapz(N2[n:, :, :] / (g * TCOEF), x=z[n:, :, :], axis=0)
     
     temp = xr.where(temp < -1.8, -1.8, temp)
 
@@ -289,7 +321,8 @@ def add_ice_to_ic(ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealiz
 
 def plot_ic(grd_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_test.nc',
             ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice_test.nc',
-            fig_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_conditions.png'):
+            fig_path_plan = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_conditions.png',
+            fig_path_cs = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_conditions_cross_section.png'):
     '''
     Plots ROMS initial conditions. 
     '''
@@ -338,15 +371,76 @@ def plot_ic(grd_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inp
                     colors='grey', linewidths=0.8)
     ax[1].clabel(cs, fmt='%d m', manual=positions, inline=True, fontsize=8, colors='black')
 
-    plt.savefig(fig_path, dpi = 300, bbox_inches = 'tight')
+    plt.savefig(fig_path_plan, dpi = 300, bbox_inches = 'tight')
 
-    print('inital conditions saved to '+fig_path)
     print('Temperature min: ', ds.temp.min().values)
     print('Temperature max: ', ds.temp.max().values)
     print('Salinity min: ',   ds.salt.min().values)
     print('Salinity max: ',   ds.salt.max().values)
     print('U velocity min: ', ds.u.min().values)
     print('U velocity max: ', ds.u.max().values)
+
+    # Plot cross section of initial conditions
+    tidx = 0
+
+    # Pick a fixed along-shelf location
+    xi_idx = 100  # pick a reasonable index along xi_rho
+
+    # --- Extract Data at the Final Time Step ---
+    temp_section = ds.temp[:, :, xi_idx]        # shape: (s_rho, eta_rho)
+    salt_section = ds.salt[:, :, xi_idx]        # shape: (s_rho, eta_rho)
+    z_rho_section = ds.z_rho[tidx, :, :, xi_idx]       # shape: (s_rho, eta_rho)
+    u_section = ds.u[tidx, :, :, xi_idx]  # shape: (s_rho, eta_u or eta_rho)
+
+    # --- Plotting 3x1 Subplots ---
+
+    # 1. Create the figure and a 3x1 grid of axes
+    fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(12, 4), sharex=True, 
+                            sharey=True, dpi = 200, constrained_layout=True)
+
+    # 2. Define the horizontal coordinate (assuming it's y_rho for the across-shelf direction)
+    # Use dsg.y_rho for the coordinate.
+    y_coord = dsg.y_rho[:, 0] / 1000  # Across-shelf distance in km
+
+    # Define common plotting parameters
+    common_ylim = (-200, 0)
+    xlabel = 'Across Shelf Distance [km]'
+
+    # --- Plot 1: Temperature ---
+    ax = axes[0]
+    pcm_temp = ax.pcolormesh(y_coord, z_rho_section, temp_section,
+                            cmap='RdYlBu_r')
+    fig.colorbar(pcm_temp, ax=ax, label='Temperature [°C]')
+    # ax.set_title(f'Vertical Section at $\\xi={xi_idx}$')
+    ax.set_ylabel('Depth [m]')
+    ax.set_ylim(common_ylim)
+
+    # --- Plot 2: Salinity ---
+    ax = axes[1]
+    # Using typical values for demonstration:
+    pcm_salt = ax.pcolormesh(y_coord, z_rho_section, salt_section,
+                            cmap=cmo.haline)
+    fig.colorbar(pcm_salt, ax=ax, label='Salinity [PSU]')
+    ax.set_ylim(common_ylim)
+
+    # --- Plot 3: U-Velocity ---
+    ax = axes[2]
+    # U-velocity is cross-shelf/along-shelf. Use vmin/vmax for flow speed.
+    # Assuming u is the along-shelf velocity and 0 is the interface:
+    pcm_u = ax.pcolormesh(y_coord, z_rho_section, u_section,
+                        cmap=cmo.amp) # Example range
+    fig.colorbar(pcm_u, ax=ax, label='$u$ [m/s]')
+    ax.set_ylim(common_ylim)
+    ax.set_xlabel(xlabel) # Only set x-label on the bottom plot (shared x-axis)
+
+    for i in range(3):
+        axes[i].set_facecolor('lightgray')
+        axes[i].set_xlabel('Across-shelf distance [km]')
+
+    plt.savefig(fig_path_cs, dpi = 300, bbox_inches = 'tight')
+
+    print('plan view of initial conditions saved to '+fig_path_plan)
+    print('cross sections of inital conditions saved to '+fig_path_cs)
 
 if __name__ == '__main__':
     make_ini_no_ice()
