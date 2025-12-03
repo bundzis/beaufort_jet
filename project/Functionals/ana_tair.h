@@ -90,7 +90,7 @@
      &              365.25_r8)
         END DO
       END DO
-#elif defined BEAUFORT_JET_ICE_BULK_FLUXES
+#elif defined BEAUFORT_JET_ICE_BULK_FLUXES || defined BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD
       Tair(i,j)=0.0_r8
 #else
       ana_tair.h: no values provided for Tair.

@@ -30,7 +30,7 @@ Lateral buoyancy parameters (for horizontal salinity gradient):
    M2_r  : 5e3                 # E-folding scale for horizontal stratification (m)
 
 Buoyancy frequency / vertical stratification (controls deformation radius):
-   N20    : 1e-4 s⁻²           # Maximum N² (squared buoyancy frequency)
+   N20    : 5e-5 s⁻²           # Maximum N² (squared buoyancy frequency)
    N2_zo  : 50.0 m             # Reference depth for the stratified layer
    N2_r   : 50.0 m             # E-folding depth scale of the pycnocline
 
@@ -73,14 +73,14 @@ def C(theta_s, theta_b, s):
     else:
         return -C
 
-def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_test.nc', 
-                    grd_path='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_test.nc',
+def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_500_m.nc', 
+                    grd_path='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_500_m.nc',
                     zlevs=40, theta_s=5.0, theta_b=0.4, hc=5.0,
-                    T0=0.5, S0=33.0, TCOEF=1.7e-4, SCOEF=7.6e-4,
-                    M20=3e-7, M2_yo=120e3, M2_r=5e3,
-                    N20=5e-5, N2_zo=-50.0, N2_r=-50.0,
+                    T0=0.5, S0=30.0, TCOEF=1.7e-4, SCOEF=7.6e-4,
+                    M20=0, M2_yo=120e3, M2_r=5e3,
+                    N20=5e-5, N2_zo=-50.0, N2_r=-50,
                     balanced_run=True, lateral_strat_type = 'jet',
-                    y0_jet=110e3, L_jet = 10e3, M2_jet_amp=1e-7):
+                    y0_jet=120e3, L_jet = 10e3, M2_jet_amp=5e-7):
 
 
     grd = xr.open_dataset(grd_path)
@@ -122,47 +122,83 @@ def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized
 
     elif lateral_strat_type == "jet":
         # -----------------------------
-        # 1. Plume background (2D)
+        # 1. Base background salinity
         # -----------------------------
-        M2_plume = M20 * np.exp((M2_yo - grd.y_rho) / M2_r)
-        M2_plume = M2_plume.where(grd.y_rho > M2_yo, M20)
-
-        # Horizontal cumsum along y for plume only
-        salt_plume = (M2_plume * dy / g / SCOEF).cumsum(dim='eta_rho')
-
-        # Normalize to reference salinity
-        salt_plume -= salt_plume[-1] - S0
-
-        # Expand plume to full vertical
-        salt = salt_plume.expand_dims('s_rho') * np.ones((zlevs, 1, 1))
-        salt.coords['s_rho'] = s_rho
+        salt_1D = xr.full_like(grd.y_rho, S0)
 
         # -----------------------------
-        # 2. Jet anomaly (vertical structure)
+        # 2. Compute lateral density gradient from M2_jet_amp
+        #    Gaussian-shaped jet in y
         # -----------------------------
-        # Define a strict lateral mask for the jet
-        jet_mask = np.abs(grd.y_rho - y0_jet) <= 2*L_jet  # ~2 std deviations of the Gaussian
+        # Thermal wind gradient in kg/m^4 (rho_y)
+        M2_jet_y = M2_jet_amp * np.exp(-((grd.y_rho - y0_jet) / L_jet) ** 2)
 
-        # Jet amplitude in y only, masked laterally
-        M2_jet_y = M2_jet_amp * np.exp(-((grd.y_rho - y0_jet)/L_jet)**2) * jet_mask
+        # Convert to salinity gradient: dS/dy = M2 / (g * SCOEF)
+        dS_dy = M2_jet_y / (9.81 * SCOEF)
 
-        # Vertical envelope (same dimensions as N2)
-        # Fz = N2 / N2.max(dim='s_rho')
-        # Fz = Fz.transpose('s_rho','eta_rho','xi_rho')
+        # Cumulative integral in y to get salinity anomaly
+        salt_anomaly = dS_dy.cumsum(dim='eta_rho') * (grd.y_rho[1] - grd.y_rho[0])
 
-        # Superimpose jet anomaly on plume
-        salt_jet_anomaly = xr.DataArray(
-            np.tile(M2_jet_y.values[np.newaxis, :, :], (zlevs, 1, 1)),
+        # Shift to keep background salinity
+        salt_1D += (salt_anomaly - salt_anomaly.min())
+
+        # -----------------------------
+        # 3. Expand to full vertical
+        # -----------------------------
+        salt = xr.DataArray(
+            np.tile(salt_1D.values[np.newaxis, :, :], (zlevs, 1, 1)),
             dims=('s_rho','eta_rho','xi_rho'),
             coords={'s_rho': s_rho, 'eta_rho': grd.eta_rho, 'xi_rho': grd.xi_rho}
         )
 
-        salt += salt_jet_anomaly
+        # For reference or plotting: total M2 used in thermal wind
+        M2 = M2_jet_y
 
-        # -----------------------------
-        # 3. Optional: total M2 (plume + jet)
-        # -----------------------------
-        M2 = M2_plume + M2_jet_y
+    # OLD JET CODE WITH PLUME SUPERIMPOSED
+    # elif lateral_strat_type == "jet":
+    #     # -----------------------------
+    #     # 1. Plume background (2D)
+    #     # -----------------------------
+    #     M2_plume = M20 * np.exp((M2_yo - grd.y_rho) / M2_r)
+    #     M2_plume = M2_plume.where(grd.y_rho > M2_yo, M20)
+
+    #     # Horizontal cumsum along y for plume only
+    #     # salt_plume = (M2_plume * dy / g / SCOEF).cumsum(dim='eta_rho')
+
+    #     # Normalize to reference salinity
+    #     # salt_plume -= salt_plume[-1] - S0
+    #     salt_plume = ( 29 * xr.ones_like(grd.y_rho) ) 
+
+    #     # Expand plume to full vertical
+    #     salt = salt_plume.expand_dims('s_rho') * np.ones((zlevs, 1, 1))
+    #     salt.coords['s_rho'] = s_rho
+
+    #     # -----------------------------
+    #     # 2. Jet anomaly (vertical structure)
+    #     # -----------------------------
+    #     # Define a strict lateral mask for the jet
+    #     jet_mask = np.abs(grd.y_rho - y0_jet) <= 2*L_jet  # ~2 std deviations of the Gaussian
+
+    #     # Jet amplitude in y only, masked laterally
+    #     M2_jet_y = M2_jet_amp * np.exp(-((grd.y_rho - y0_jet)/L_jet)**2) * jet_mask
+
+    #     # Vertical envelope (same dimensions as N2)
+    #     # Fz = N2 / N2.max(dim='s_rho')
+    #     # Fz = Fz.transpose('s_rho','eta_rho','xi_rho')
+
+    #     # Superimpose jet anomaly on plume
+    #     salt_jet_anomaly = xr.DataArray(
+    #         np.tile(M2_jet_y.values[np.newaxis, :, :], (zlevs, 1, 1)),
+    #         dims=('s_rho','eta_rho','xi_rho'),
+    #         coords={'s_rho': s_rho, 'eta_rho': grd.eta_rho, 'xi_rho': grd.xi_rho}
+    #     )
+
+    #     salt += salt_jet_anomaly
+
+    #     # -----------------------------
+    #     # 3. Optional: total M2 (plume + jet)
+    #     # -----------------------------
+    #     M2 = M2_plume + M2_jet_y
 
 
     # -------------------------------------------------------------
@@ -266,8 +302,8 @@ def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized
     print('Writing netcdf INI file: '+output)
     ds.to_netcdf(output)
 
-def add_ice_to_ic(ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_test.nc',
-                  ini_modified_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice_test.nc'):
+def add_ice_to_ic(ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_500_m.nc',
+                  ini_modified_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice_500_m.nc'):
     '''
     Adds ice variables to initial condition files. Currently, the model will start from an ice-free state,
     so all values are set to zero! 
@@ -319,8 +355,8 @@ def add_ice_to_ic(ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealiz
                               attrs={'units': 'Newton meter-1'})
     ds.to_netcdf(ini_modified_path)
 
-def plot_ic(grd_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_test.nc',
-            ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice_test.nc',
+def plot_ic(grd_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_500_m.nc',
+            ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice_500_m.nc',
             fig_path_plan = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_conditions.png',
             fig_path_cs = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_conditions_cross_section.png'):
     '''

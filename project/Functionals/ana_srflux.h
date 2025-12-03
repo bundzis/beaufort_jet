@@ -174,8 +174,8 @@
 !
 # ifdef LAKE_ICE
           LatRad=42.0_r8*deg2rad
-# elif defined BEAUFORT_JET_ICE_BULK_FLUXES
-          LatRad=70.0_r8*deg2rad
+# elif defined BEAUFORT_JET_ICE_BULK_FLUXES || defined BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD
+          LatRad=72.0_r8*deg2rad
 # else
           LatRad=latr(i,j)*deg2rad
 # endif
