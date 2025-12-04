@@ -1,13 +1,8 @@
 '''
 Create an initialization file for an idealized Beaufort shelf simulation. Based on the shelfstrat model originally developed 
-by Rob Hetland in the 2010s! The default parameters MUST be adjusted based on a water mass analysis of the beaufort 
-shelf. These parameters produce baroclinic instabilities, but the deformation radius in an unforced simulation is too large.
-The flow is configured in thermal wind balance with added noise to bathmetry to encourage instabilities. 
-
-To do, so this is more like a jet than a plume: 
-- Rework make_ini so we calculate dρ/dy instead of giving a constant M2
-This way, a jet can be prescribed. The plume edge looks like a jet with this bathymetric configuration, but we MUST 
-do better!
+by Rob Hetland in the 2010s! The flow is configured in partial thermal wind balance with added noise to bathmetry to encourage 
+instabilities. Note that the thermal wind balance is approximate since we only use the lateral salinity gradient to compute 
+the balanced velocity.
 
 Horizontal stratification is controlled by salinity (S), and vertical stratification is controlled by temperature (T). 
 The density is computed using a linear equation of state:
@@ -29,22 +24,22 @@ Lateral buoyancy parameters (for horizontal salinity gradient):
    M2_yo : 120e3               # Y-location of plume/jet edge
    M2_r  : 5e3                 # E-folding scale for horizontal stratification (m)
 
-Buoyancy frequency / vertical stratification (controls deformation radius):
-   N20    : 5e-5 s⁻²           # Maximum N² (squared buoyancy frequency)
-   N2_zo  : 50.0 m             # Reference depth for the stratified layer
-   N2_r   : 50.0 m             # E-folding depth scale of the pycnocline
+Temperature vertical stratification parameters:
+    T0    : 0.5 °C              # Surface temperature  
+    Tbot  : -1.6 °C             # Bottom temperature
+    H_pyc : -50.0 m             # Depth of pycnocline center
+    delta : 15.0 m              # Thickness (e-folding scale) of the pycnocline
+
 
 Notes on deformation radius:
    L_d ~ N * H / f
    H  : vertical pycnocline thickness (You can plot the initial conditions to figure this out)
    f  : Coriolis parameter (depends on latitude)
    N  : characteristic buoyancy frequency (depends on N20 and pycnocline profile)
-   => Adjusting N20, N2_zo, N2_r changes the first-mode baroclinic deformation radius.
 
 balanced_run : True/False     # If True, computes a balanced initial velocity from the density field
-lateral_strat_type:    # Sets whether the lateral stratification is a buoyant plume or jet
-    - Valid arguments: "plume", "jet"
-
+lateral_strat_type:    # Sets whether the lateral stratification is a buoyant plume or jet, PLUME no longer supported
+    - Valid arguments: "jet"
 
 References: 
 - Hetland, R. D. (2017). Suppression of baroclinic instabilities in buoyancy-driven flow over sloping bathymetry. 
@@ -76,16 +71,16 @@ def C(theta_s, theta_b, s):
 def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_500_m.nc', 
                     grd_path='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_500_m.nc',
                     zlevs=40, theta_s=5.0, theta_b=0.4, hc=5.0,
-                    T0=0.5, S0=30.0, TCOEF=1.7e-4, SCOEF=7.6e-4,
-                    M20=0, M2_yo=120e3, M2_r=5e3,
-                    N20=5e-5, N2_zo=-50.0, N2_r=-50,
+                    T0=0.5, Tbot = -1.6, delta = 15.0, H_pyc = -50.0,
+                    S0=30.0, TCOEF=1.7e-4, SCOEF=7.6e-4,
+                    M2_yo=120e3, M2_r=5e3,
                     balanced_run=True, lateral_strat_type = 'jet',
-                    y0_jet=120e3, L_jet = 10e3, M2_jet_amp=5e-7):
+                    y0_jet=115e3, L_jet = 15e3, M2_jet_amp=5e-7):
 
 
     grd = xr.open_dataset(grd_path)
-    Ld =  (np.sqrt(N20)*np.abs(N2_r)) / (grd.f.values[0,0])
-    print('Deformation radius in km, ', Ld/1000)
+    # Ld =  (np.sqrt(N20)*np.abs(N2_r)) / (grd.f.values[0,0])
+    # print('Deformation radius in km, ', Ld/1000)
 
     g = 9.81
     dy = 1 / grd.pn
@@ -97,40 +92,21 @@ def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized
     Cs_r = C(theta_s, theta_b, s_rho)
     Cs_w = C(theta_s, theta_b, s_w)
 
-    # Create lateral stratification based on M2. The "plume" case is as described in Hetland (2017) and 
-    # Schlichting et al (2024)
-    # -------------------------------------------------------------
-    # Compute vertical stratification (N^2) profile
-    # -------------------------------------------------------------
     z = get_depths(grd.h, hc, s_rho, Cs_r, 's_rho')  # depth at rho points
-    N2 = N20 * np.exp(-(N2_zo - z) / N2_r)
-    N2 = N2.where(z > N2_zo, N20)
     Hz = get_depths(grd.h, hc, s_w, Cs_w, 's_w').diff('s_w').rename({'s_w': 's_rho'})
     Hz.coords['s_rho'] = s_rho
 
-    # Create lateral stratification based on M2. The "plume" case is as described in Hetland (2017) and 
-    # Schlichting et al (2024)
-    if lateral_strat_type == "plume":
-        # Original salt construction (constant horizontal density gradient)
-        M2 = M20 * np.exp((M2_yo - grd.y_rho) / M2_r)
-        M2 = M2.where(grd.y_rho > M2_yo, M20)
-        
-        salt = (M2 * dy / g / SCOEF).cumsum(axis=0)
-        salt -= salt[-1] - S0
-        salt = salt.expand_dims('s_rho') * np.ones((zlevs, 1, 1), 'd')
-        salt.coords['s_rho'] = s_rho
-
-    elif lateral_strat_type == "jet":
+    if lateral_strat_type == "jet":
         # -----------------------------
-        # 1. Base background salinity
+        # 1. Background salinity
         # -----------------------------
         salt_1D = xr.full_like(grd.y_rho, S0)
 
-        # -----------------------------
-        # 2. Compute lateral density gradient from M2_jet_amp
+        # ---------------------------------------------------
+        # 2. Compute lateral salinity gradient from M2_jet_amp
         #    Gaussian-shaped jet in y
-        # -----------------------------
-        # Thermal wind gradient in kg/m^4 (rho_y)
+        # ---------------------------------------------------
+        
         M2_jet_y = M2_jet_amp * np.exp(-((grd.y_rho - y0_jet) / L_jet) ** 2)
 
         # Convert to salinity gradient: dS/dy = M2 / (g * SCOEF)
@@ -142,108 +118,42 @@ def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized
         # Shift to keep background salinity
         salt_1D += (salt_anomaly - salt_anomaly.min())
 
-        # -----------------------------
-        # 3. Expand to full vertical
-        # -----------------------------
-        salt = xr.DataArray(
-            np.tile(salt_1D.values[np.newaxis, :, :], (zlevs, 1, 1)),
-            dims=('s_rho','eta_rho','xi_rho'),
-            coords={'s_rho': s_rho, 'eta_rho': grd.eta_rho, 'xi_rho': grd.xi_rho}
-        )
+        # Add option for vertical salinity stratification, not needed but nice to have!
+        dSdz = 0e-3
+        z_abs = np.abs(z)
+        salt = salt_1D + dSdz * z_abs
 
         # For reference or plotting: total M2 used in thermal wind
         M2 = M2_jet_y
 
-    # OLD JET CODE WITH PLUME SUPERIMPOSED
-    # elif lateral_strat_type == "jet":
-    #     # -----------------------------
-    #     # 1. Plume background (2D)
-    #     # -----------------------------
-    #     M2_plume = M20 * np.exp((M2_yo - grd.y_rho) / M2_r)
-    #     M2_plume = M2_plume.where(grd.y_rho > M2_yo, M20)
-
-    #     # Horizontal cumsum along y for plume only
-    #     # salt_plume = (M2_plume * dy / g / SCOEF).cumsum(dim='eta_rho')
-
-    #     # Normalize to reference salinity
-    #     # salt_plume -= salt_plume[-1] - S0
-    #     salt_plume = ( 29 * xr.ones_like(grd.y_rho) ) 
-
-    #     # Expand plume to full vertical
-    #     salt = salt_plume.expand_dims('s_rho') * np.ones((zlevs, 1, 1))
-    #     salt.coords['s_rho'] = s_rho
-
-    #     # -----------------------------
-    #     # 2. Jet anomaly (vertical structure)
-    #     # -----------------------------
-    #     # Define a strict lateral mask for the jet
-    #     jet_mask = np.abs(grd.y_rho - y0_jet) <= 2*L_jet  # ~2 std deviations of the Gaussian
-
-    #     # Jet amplitude in y only, masked laterally
-    #     M2_jet_y = M2_jet_amp * np.exp(-((grd.y_rho - y0_jet)/L_jet)**2) * jet_mask
-
-    #     # Vertical envelope (same dimensions as N2)
-    #     # Fz = N2 / N2.max(dim='s_rho')
-    #     # Fz = Fz.transpose('s_rho','eta_rho','xi_rho')
-
-    #     # Superimpose jet anomaly on plume
-    #     salt_jet_anomaly = xr.DataArray(
-    #         np.tile(M2_jet_y.values[np.newaxis, :, :], (zlevs, 1, 1)),
-    #         dims=('s_rho','eta_rho','xi_rho'),
-    #         coords={'s_rho': s_rho, 'eta_rho': grd.eta_rho, 'xi_rho': grd.xi_rho}
-    #     )
-
-    #     salt += salt_jet_anomaly
-
-    #     # -----------------------------
-    #     # 3. Optional: total M2 (plume + jet)
-    #     # -----------------------------
-    #     M2 = M2_plume + M2_jet_y
-
-
-    # -------------------------------------------------------------
-    # Compute vertical stratification (N^2) and initialize temperature profile
-    # -------------------------------------------------------------
-    # N2 = N20 * exp(-(N2_zo - z) / N2_r)
-    #   - Define the vertical buoyancy frequency profile (N^2) as an exponential decay
-    #   - N20: maximum stratification near the surface
-    #   - N2_zo: reference depth for decay (depth of pycnocline onset)
-    #   - N2_r: e-folding depth scale over which N^2 decreases
-    #   - z: depth of rho points (positive downward)
-    #
-    # N2 = N2.where(z > N2_zo, N20)
-    #   - Clamp N2 above the reference depth to N20 (ensure strong surface stratification)
-    #
-    # temp = xr.zeros_like(salt)
-    #   - Initialize a temperature array of same shape as salinity
-    #
-    # for n in range(zlevs):
-    #     temp[n] = T0 - np.trapz(N2[n:] / (g * TCOEF), x=z[n:], axis=0)
-    #   - Integrate N^2 downward to get temperature profile using a linear equation of state
-    #   - T0: reference temperature at surface
-    #   - TCOEF: thermal expansion coefficient (relates density changes to temperature)
-    #   - g: gravity
-    #   - np.trapz(...) integrates the buoyancy frequency contribution to temperature
-    #   - Result: vertical temperature profile in approximate hydrostatic balance with N^2
+    # Construct temperature field. 
     # -------------------------------------------------------------
 
-    # N2 = N20 * np.exp(-(N2_zo - z) / N2_r)
-    # N2 = N2.where(z > N2_zo, N20)
-
-    # Make sure vertical is first, then eta_rho, xi_rho
-    N2 = N2.transpose('s_rho', 'eta_rho', 'xi_rho')
-    z  = z.transpose('s_rho', 'eta_rho', 'xi_rho')
+    # --- Reorder arrays so vertical dimension is first ---
+    # This ensures that operations over the vertical (s_rho) axis are consistent
+    z = z.transpose('s_rho', 'eta_rho', 'xi_rho')
     salt = salt.transpose('s_rho', 'eta_rho', 'xi_rho')
+    zlevs = z.s_rho.size  # Number of vertical levels
 
-    temp = xr.zeros_like(salt)
-    for n in range(zlevs):
-        temp[n] = T0 - np.trapz(N2[n:, :, :] / (g * TCOEF), x=z[n:, :, :], axis=0)
-    
-    temp = xr.where(temp < -1.8, -1.8, temp)
+    # --- Define surface and bottom temperatures ---
+    T_surface = T0        # Surface temperature [°C]
+    T_bottom  = Tbot      # Bottom temperature [°C]
 
-    #########################################
+    # --- Compute smooth vertical temperature profile using a hyperbolic tangent ---
+    # Produces a continuous transition from bottom to surface temperature around the pycnocline
+    # temp_profile = T_bottom + 0.5*(T_surface - T_bottom)*(1 - tanh((H_pyc - z)/delta))
+    temp_profile = T_bottom + 0.5*(T_surface - T_bottom)*(1 - np.tanh((H_pyc - z)/delta))
+
+    # --- Broadcast profile to full 3D grid ---
+    # Ensures temperature array has same shape as salinity array for ROMS
+    temp = temp_profile * np.ones_like(salt)
+
+    # --- Set surface temperature to horizontal mean at the top layer ---
+    # This avoids small horizontal variations at the surface
+    T_surf_val = temp.isel(s_rho=-1).mean(dim=('eta_rho','xi_rho'))
+    temp.loc[dict(s_rho=temp.s_rho[-1])] = T_surf_val
+
     # Create dataset
-
     ds = xr.Dataset({'temp': temp, 'salt': salt,
                      's_rho': s_rho, 'xi_rho': grd.xi_rho, 'eta_rho': grd.eta_rho})
 
@@ -254,7 +164,10 @@ def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized
     #    compute the vertical shear of the zonal velocity using
     #       du/dz ≈ - (g / (f * rho0)) * dρ/dy
     #    This is the thermal wind equation in the Arctic shelf context.
-    # 2. rhs = Hz * M2 / grd.f approximates the layer-integrated shear
+    # 2. rhs = Hz * M2 / grd.f approximates the layer-integrated shear. We IGNORE 
+    #    temperature's contributions to density otherwise the profile will look 
+    #    extremely noisy seaward of the jet. This is only a problem because of the 
+    #    steep bathymetry! 
     # 3. u_z = 0.5 * (rhs[:, :, 1:] + rhs[:, :, :-1]) averages shear to midpoints
     # 4. u = np.cumsum(u_z, axis=0) integrates shear from bottom to top
     # 5. ubottom = zeros imposes no-slip at the bottom
