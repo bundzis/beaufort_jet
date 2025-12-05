@@ -66,8 +66,8 @@ def C(theta_s, theta_b, s):
     else:
         return -C
 
-def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini.nc', 
-                    grd_path='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd.nc',
+def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini.nc', 
+                    grd_path='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/grd.nc',
                     zlevs=40, theta_s=5.0, theta_b=0.4, hc=5.0,
                     T0=2.0, S0=34.0, TCOEF=1.7e-4, SCOEF=7.6e-4,
                     M20=5e-7, M2_yo=120e3, M2_r=5e3,
@@ -193,8 +193,8 @@ def make_ini_no_ice(output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized
     print('Writing netcdf INI file: '+output)
     ds.to_netcdf(output)
 
-def add_ice_to_ic(ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini.nc',
-                  ini_modified_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice.nc'):
+def add_ice_to_ic(ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini.nc',
+                  ini_modified_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini_ice.nc'):
     '''
     Adds ice variables to initial condition files. Currently, the model will start from an ice-free state,
     so all values are set to zero! 

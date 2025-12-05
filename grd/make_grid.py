@@ -94,7 +94,7 @@ def make_CGrid(x, y):
 
 def make_grd_from_bathymetry(bfit, x_km, dx=1000, dy=1000,
                              Lx_km=201, Ly_km=251,
-                             output='/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd.nc',
+                             output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/grd.nc',
                              spherical=False, angle=0.0):
     """
     Generate a ROMS C-grid using a 1D bathymetry profile.
@@ -276,7 +276,7 @@ if __name__ == "__main__":
         help="Domain length in y (km). Default = 250"
     )
     parser.add_argument(
-        "--ncfile", type=str, default="/pscratch/sd/d/dylan617/beaufort_roms/generate_inputs/gebco_2025_n75.0_s68.0_w-154.0_e-138.0.nc",
+        "--ncfile", type=str, default="/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/gebco_2025_n75.0_s68.0_w-154.0_e-138.0.nc",
         help="Path to input GEBCO bathymetry NetCDF file."
     )
 
