@@ -68,8 +68,8 @@ def C(theta_s, theta_b, s):
     else:
         return -C
 
-def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini.nc', 
-                    grd_path='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/grd.nc',
+def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini_1km.nc', # Manually change here depending on resolution
+                    grd_path='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/grd_1km.nc', # Manually change here depending on resolution
                     zlevs=40, theta_s=5.0, theta_b=0.4, hc=5.0,
                     T0=0.5, Tbot = -1.6, delta = 15.0, H_pyc = -50.0,
                     S0=30.0, TCOEF=1.7e-4, SCOEF=7.6e-4,
@@ -215,8 +215,8 @@ def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_ideal
     print('Writing netcdf INI file: '+output)
     ds.to_netcdf(output)
 
-def add_ice_to_ic(ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini.nc',
-                  ini_modified_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini_ice.nc'):
+def add_ice_to_ic(ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini_500_m.nc',
+                  ini_modified_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini_ice_500_m.nc'):
     '''
     Adds ice variables to initial condition files. Currently, the model will start from an ice-free state,
     so all values are set to zero! 
@@ -268,10 +268,10 @@ def add_ice_to_ic(ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_ide
                               attrs={'units': 'Newton meter-1'})
     ds.to_netcdf(ini_modified_path)
 
-def plot_ic(grd_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_500_m.nc',
-            ini_path = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice_500_m.nc',
-            fig_path_plan = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_conditions.png',
-            fig_path_cs = '/pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_conditions_cross_section.png'):
+def plot_ic(grd_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/grd_500_m.nc',
+            ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini_ice_500_m.nc',
+            fig_path_plan = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini_conditions.png',
+            fig_path_cs = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/ini_conditions_cross_section.png'):
     '''
     Plots ROMS initial conditions. 
     '''
