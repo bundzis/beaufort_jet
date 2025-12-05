@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # For old-school metroms
 # module purge 
 # module load PrgEnv-gnu
@@ -7,7 +9,7 @@
 # module load cray-parallel-netcdf
 # module load cray-mpich
 
-# For modern perlmutter base terminal
+# For modern perlmutter base terminal, 'source perlmutter_env.sh'
 module load cray-hdf5
 module load cray-netcdf
 module load cray-parallel-netcdf
