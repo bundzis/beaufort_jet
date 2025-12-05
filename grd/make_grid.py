@@ -134,17 +134,13 @@ def make_grd_from_bathymetry(bfit, x_km, dx=500, dy=500,
     y = grd.y_rho  # shape (eta_rho, xi_rho)
     offshore_dist = np.abs(y)  # or remove abs() if y is strictly positive
 
-    # 150 km mask
-    mask_150km = offshore_dist <= 150e3   # True = apply noise
-
-    # noise field (full grid, but will be masked)
     noise_amplitude = 0.01 * h_grid
     rng = np.random.default_rng(seed=42)
     noise = rng.uniform(-1, 1, size=h_grid.shape) * noise_amplitude
 
     # apply noise ONLY where mask is True
     h_grid_noisy = h_grid.copy()
-    h_grid_noisy[mask_150km] += noise[mask_150km]
+    h_grid_noisy += noise
 
     # update ROMS grid
     grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid_noisy))
