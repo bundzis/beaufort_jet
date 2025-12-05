@@ -25,8 +25,8 @@ Command-line arguments:
 
 Note: the resulting roms.in file will have these properties
 
-          Lm == Lx_km-3            ! Number of I-direction INTERIOR RHO-points
-          Mm == Ly_km-3            ! Number of J-direction INTERIOR RHO-points
+          Lm == Lx_km-3            ! Number of I-direction INTERIOR RHO-points for 1 km 
+          Mm == Ly_km-3            ! Number of J-direction INTERIOR RHO-points for 1 km
 
 Bathymetry formula:
 
@@ -92,7 +92,7 @@ def make_CGrid(x, y):
 
     return ds
 
-def make_grd_from_bathymetry(bfit, x_km, dx=1000, dy=1000,
+def make_grd_from_bathymetry(bfit, x_km, dx=500, dy=500,
                              Lx_km=201, Ly_km=251,
                              output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/grd.nc',
                              spherical=False, angle=0.0):
@@ -126,16 +126,34 @@ def make_grd_from_bathymetry(bfit, x_km, dx=1000, dy=1000,
 
 
     # --- Add random noise equal to 0.5% of local depth ---
-    noise_amplitude = 0.02 * h_grid
-    rng = np.random.default_rng(seed=42)  # deterministic for reproducibility
-    h_grid_noisy = h_grid + rng.uniform(-1, 1, size=h_grid.shape) * noise_amplitude
+    # noise_amplitude = 0.005 * h_grid
+    # rng = np.random.default_rng(seed=42)  # deterministic for reproducibility
+    # h_grid_noisy = h_grid + rng.uniform(-1, 1, size=h_grid.shape) * noise_amplitude
 
+    # offshore coordinate (meters → km)
+    y = grd.y_rho  # shape (eta_rho, xi_rho)
+    offshore_dist = np.abs(y)  # or remove abs() if y is strictly positive
+
+    # 150 km mask
+    mask_150km = offshore_dist <= 150e3   # True = apply noise
+
+    # noise field (full grid, but will be masked)
+    noise_amplitude = 0.01 * h_grid
+    rng = np.random.default_rng(seed=42)
+    noise = rng.uniform(-1, 1, size=h_grid.shape) * noise_amplitude
+
+    # apply noise ONLY where mask is True
+    h_grid_noisy = h_grid.copy()
+    h_grid_noisy[mask_150km] += noise[mask_150km]
+
+    # update ROMS grid
     grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid_noisy))
+    # grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid_noisy))
 
     # grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid))
 
     # --- Add Coriolis, angle, etc. ---
-    f_value = 1.367e-4  
+    f_value = 1.387e-4  
     grd['f'] = f_value * xr.ones_like(grd.pm)
     grd.f.attrs.update({
         'long_name': 'Coriolis parameter at RHO-points',
@@ -176,7 +194,7 @@ def make_grd_from_bathymetry(bfit, x_km, dx=1000, dy=1000,
 
     return grd
 
-def extract_mean_bathymetry(ncfile, lon_max=152, lat_max=72, smooth_sigma=2):
+def extract_mean_bathymetry(ncfile, lon_max=152, lat_max=72, smooth_sigma=4):
     """
     Extract and smooth a longitudinal mean bathymetry profile from a GEBCO NetCDF file.
     """
@@ -260,12 +278,12 @@ if __name__ == "__main__":
     # --- Define command-line arguments ---
     parser = argparse.ArgumentParser(description="Generate a ROMS grid from GEBCO bathymetry.")
     parser.add_argument(
-        "--dx", type=float, default=1000,
-        help="Grid spacing in the x-direction (m). Default = 1000"
+        "--dx", type=float, default=500,
+        help="Grid spacing in the x-direction (m). Default = 500"
     )
     parser.add_argument(
-        "--dy", type=float, default=1000,
-        help="Grid spacing in the y-direction (m). Default = 1000"
+        "--dy", type=float, default=500,
+        help="Grid spacing in the y-direction (m). Default = 500"
     )
     parser.add_argument(
         "--Lx_km", type=float, default=201,

@@ -84,7 +84,7 @@
 !  (1 mb = 100 Pa = 1 hPa,  1 bar = 1.0e+5 N/m2 = 1.0e+5 dynes/cm2).
 !-----------------------------------------------------------------------
 !
-#if defined LAKE_ICE || defined BEAUFORT_JET_ICE_BULK_FLUXES
+#if defined LAKE_ICE || defined BEAUFORT_JET_ICE_BULK_FLUXES || defined BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD
       DO j=JstrT,JendT
         DO i=IstrT,IendT
           Pair(i,j)=1013.48_r8

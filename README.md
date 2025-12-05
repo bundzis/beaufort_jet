@@ -39,4 +39,5 @@ Edit as you see fit. Both the ice and ice-free models share the following proper
 - No nudging
 - No lateral mixing for momentum or tracers
 - DVD header flags because it will slow the model down. This can be turned on. 
+
 Ice-free model is UNFORCED, so it runs purely as an initial value problem. Ice model is stable with ```nEVP=60``` but requires ```BULK_FLUXES``` to run and form sea ice from the current initial conditions. If you change the with ice application name, you must grep and replace it in all relevant analyticals or compiling/running will break. Also, I did not do a complete comparison of the ice / no ice header options (excluding bulk fluxes). This needs to be checked and corrected as necessary.

@@ -68,7 +68,7 @@
 
 ! C-preprocessing Flag.
 
-    MyAppCPP = BEAUFORT_JET_ICE_BULK_FLUXES
+    MyAppCPP = BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD
 
 ! Input variable information file name.  This file needs to be processed
 ! first so all information arrays can be initialized properly.
@@ -98,7 +98,7 @@ GridsInLayer =  1
         Nbed =  0             ! Number of sediment bed layers
 
          NAT =  2             ! Number of active tracers (usually, 2)
-         NPT =  0             ! Number of inactive passive tracers (6 for numerical mixing)
+         NPT =  6             ! Number of inactive passive tracers (6 for numerical mixing)
          NCS =  0             ! Number of cohesive (mud) sediment tracers
          NNS =  0             ! Number of non-cohesive (sand) sediment tracers
 
@@ -432,7 +432,7 @@ LtracerSponge == F F F F F F F F                ! temperature, salinity, inert
 
      THETA_S == 5.0d0                      ! surface stretching parameter
      THETA_B == 0.4d0                      ! bottom  stretching parameter
-      TCLINE == 20.0d0                     ! critical depth (m)
+      TCLINE == 5.0d0                     ! critical depth (m)
 
 ! Mean Density and Brunt-Vaisala frequency.
 
@@ -469,8 +469,8 @@ LtracerSponge == F F F F F F F F                ! temperature, salinity, inert
 ! Linear equation of State parameters:
 
           R0 == 1025.0d0                   ! kg/m3
-          T0 == 2.0d0                      ! Celsius
-          S0 == 34.0d0                     ! nondimensional
+          T0 == 0.5d0                      ! Celsius
+          S0 == 31.0d0                     ! nondimensional
        TCOEF == 1.7d-4                     ! 1/Celsius
        SCOEF == 7.6d-4                     ! nondimensional
 
@@ -1119,8 +1119,8 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
 ! Input NetCDF file names, [1:Ngrids].
 
-     GRDNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_test.nc
-     ININAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice_test.nc
+     GRDNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/grd_1000_m.nc
+     ININAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/inputs/ini_ice_1000_m.nc
      ITLNAME == roms_itl.nc
      IRPNAME == roms_irp.nc
      IADNAME == roms_iad.nc
@@ -1215,14 +1215,14 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
      DAINAME == roms_dai.nc
      GSTNAME == roms_gst.nc
-     RSTNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/ocean_rst_ice.nc
-     HISNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/roms_his_ice.nc
+     RSTNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/ocean_rst_ice_w_dvd_dx_1000m.nc
+     HISNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/roms_his_ice_w_dvd_dx_1000m.nc
      XTRNAME == roms_xtr.nc
      QCKNAME == roms_qck.nc
      TLMNAME == roms_tlm.nc
      TLFNAME == roms_tlf.nc
      ADJNAME == roms_adj.nc
-     AVGNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/roms_avg_ice.nc
+     AVGNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/roms_avg_ice_w_dvd_dx_1000m.nc
      HARNAME == roms_har.nc
      DIANAME == roms_dia.nc
      STANAME == roms_sta.nc
@@ -3585,3 +3585,4 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 ! VEGNAME      Input vegetation filename.
 ! USRNAME      USER's input generic filename.
 !
+
