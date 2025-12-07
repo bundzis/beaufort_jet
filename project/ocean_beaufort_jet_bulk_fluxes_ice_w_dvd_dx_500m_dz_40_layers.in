@@ -271,15 +271,15 @@ ad_VolCons(north) ==  F                            ! northern boundary
 
        NRREC == 0 ! 0, 5
    LcycleRST == F
-        NRST == 0
+        NRST == 86400
         NSTA == 0
-        NFLT == 60 ! Every hour for DT = 60
-       NINFO == 20
+        NFLT == 1200 ! Every hour for DT = 60
+       NINFO == 240
 
 ! Output history, quicksave, average, and diagnostic files parameters.
 
      LDEFOUT == T
-        NHIS == 240 ! Every 2 hours
+        NHIS == 0 ! Every 2 hours
      NDEFHIS == 172800
         NXTR == 0
      NDEFXTR == 0
@@ -468,7 +468,7 @@ LtracerSponge == F F F F F F F F                ! temperature, salinity, inert
 
 ! Linear equation of State parameters:
 
-          R0 == 1025.0d0                   ! kg/m3
+          R0 == 1027.0d0                   ! kg/m3
           T0 == 0.5d0                      ! Celsius
           S0 == 31.0d0                     ! nondimensional
        TCOEF == 1.7d-4                     ! 1/Celsius
@@ -672,13 +672,13 @@ Hout(idevap) == F       ! evaporation        evaporation rate
 Hout(idrain) == F       ! rain               precipitation rate
 
 Hout(idDano) == F       ! rho                density anomaly
-Hout(idVvis) == T       ! AKv                vertical viscosity
-Hout(idTdif) == T       ! AKt                vertical T-diffusion
+Hout(idVvis) == F       ! AKv                vertical viscosity
+Hout(idTdif) == F       ! AKt                vertical T-diffusion
 Hout(idSdif) == F       ! AKs                vertical Salinity diffusion
 Hout(idHsbl) == F       ! Hsbl               depth of surface boundary layer
 Hout(idHbbl) == F       ! Hbbl               depth of bottom boundary layer
-Hout(idMtke) == T       ! tke                turbulent kinetic energy
-Hout(idMtls) == T       ! gls                turbulent length scale
+Hout(idMtke) == F       ! tke                turbulent kinetic energy
+Hout(idMtls) == F       ! gls                turbulent length scale
 
 ! Logical switches (TRUE/FALSE) to activate writing of extra inert passive
 ! tracers other than biological and sediment tracers into the HISTORY
@@ -886,10 +886,10 @@ Aout(idWdiw) == F       ! Dissip_wcap        wave dissipation from whitecapping
 Aout(idWdis) == F       ! Dissip_roller      wave roller dissipation
 Aout(idWrol) == F       ! roller_action      wave roller action density
 
-Aout(idPair) == T       ! Pair               surface air pressure
-Aout(idTair) == T       ! Tair               near surface air temperature
+Aout(idPair) == F       ! Pair               surface air pressure
+Aout(idTair) == F       ! Tair               near surface air temperature
 Aout(idUair) == T       ! Uwind              near surface U-wind
-Aout(idVair) == T       ! Vwind              near surface V-wind
+Aout(idVair) == F       ! Vwind              near surface V-wind
 Aout(idUaiE) == F       ! Uwind_eastward     near surface Eastward  U-wind
 Aout(idVaiN) == F       ! Vwind_northward    near surface Northward V-wind
 
@@ -902,8 +902,8 @@ Aout(idevap) == T       ! evaporation        evaporation rate
 Aout(idrain) == T       ! rain               precipitation rate
 
 Aout(idDano) == F       ! rho                density anomaly
-Aout(idVvis) == T       ! AKv                vertical viscosity
-Aout(idTdif) == T       ! AKt                vertical T-diffusion
+Aout(idVvis) == F       ! AKv                vertical viscosity
+Aout(idTdif) == F       ! AKt                vertical T-diffusion
 Aout(idSdif) == F       ! AKs                vertical Salinity diffusion
 Aout(idRdif) == T       ! AKr                Resolved vertical salinity mixing
 Aout(idRtdif) == T      ! AKrt               Resolved vertical temperature mixing
@@ -1215,14 +1215,14 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
      DAINAME == roms_dai.nc
      GSTNAME == roms_gst.nc
-     RSTNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/ocean_rst_ice_500m_w_dvd.nc
-     HISNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/roms_his_ice_500m_w_dvd.nc
+     RSTNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/ocean_rst_ice_500m_w_dvd_sixmonth.nc
+     HISNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/roms_his_ice_500m_w_dvd_sixmonth.nc
      XTRNAME == roms_xtr.nc
      QCKNAME == roms_qck.nc
      TLMNAME == roms_tlm.nc
      TLFNAME == roms_tlf.nc
      ADJNAME == roms_adj.nc
-     AVGNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/roms_avg_ice_500m_w_dvd.nc
+     AVGNAME == /pscratch/sd/d/dylan617/beaufort_roms/runs_idealized/outputs/roms_avg_ice_500m_w_dvd_sixmonth.nc
      HARNAME == roms_har.nc
      DIANAME == roms_dia.nc
      STANAME == roms_sta.nc

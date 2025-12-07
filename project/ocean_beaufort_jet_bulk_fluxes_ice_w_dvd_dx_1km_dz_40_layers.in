@@ -241,7 +241,7 @@ ad_VolCons(south) ==  F                            ! southern boundary
 ad_VolCons(north) ==  F                            ! northern boundary
 
 ! Time-Stepping parameters
-      NTIMES == 172800       ! 120 days with DT = 60
+      NTIMES == 340000       ! 120 days with DT = 60
           DT == 60.0d0       ! 5.0d0
      NDTFAST == 30           ! 20
 
@@ -672,13 +672,13 @@ Hout(idevap) == F       ! evaporation        evaporation rate
 Hout(idrain) == F       ! rain               precipitation rate
 
 Hout(idDano) == F       ! rho                density anomaly
-Hout(idVvis) == T       ! AKv                vertical viscosity
-Hout(idTdif) == T       ! AKt                vertical T-diffusion
+Hout(idVvis) == F       ! AKv                vertical viscosity
+Hout(idTdif) == F       ! AKt                vertical T-diffusion
 Hout(idSdif) == F       ! AKs                vertical Salinity diffusion
 Hout(idHsbl) == F       ! Hsbl               depth of surface boundary layer
 Hout(idHbbl) == F       ! Hbbl               depth of bottom boundary layer
-Hout(idMtke) == T       ! tke                turbulent kinetic energy
-Hout(idMtls) == T       ! gls                turbulent length scale
+Hout(idMtke) == F       ! tke                turbulent kinetic energy
+Hout(idMtls) == F       ! gls                turbulent length scale
 
 ! Logical switches (TRUE/FALSE) to activate writing of extra inert passive
 ! tracers other than biological and sediment tracers into the HISTORY
@@ -837,7 +837,7 @@ Aout(idBath) == F       ! bath               time-dependent bathymetry
 Aout(idTvar) == T T     ! temp, salt         temperature and salinity
 
 Aout(idUsms) == T       ! sustr              surface U-stress
-Aout(idVsms) == T       ! svstr              surface V-stress
+Aout(idVsms) == F       ! svstr              surface V-stress
 Aout(idUbms) == F       ! bustr              bottom U-stress
 Aout(idVbms) == F       ! bvstr              bottom V-stress
 
@@ -902,8 +902,8 @@ Aout(idevap) == T       ! evaporation        evaporation rate
 Aout(idrain) == T       ! rain               precipitation rate
 
 Aout(idDano) == F       ! rho                density anomaly
-Aout(idVvis) == T       ! AKv                vertical viscosity
-Aout(idTdif) == T       ! AKt                vertical T-diffusion
+Aout(idVvis) == F       ! AKv                vertical viscosity
+Aout(idTdif) == F       ! AKt                vertical T-diffusion
 Aout(idSdif) == F       ! AKs                vertical Salinity diffusion
 Aout(idRdif) == T       ! AKr                Resolved vertical salinity mixing
 Aout(idRtdif) == T      ! AKrt               Resolved vertical temperature mixing
