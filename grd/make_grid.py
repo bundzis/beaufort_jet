@@ -135,7 +135,7 @@ def make_CGrid(x, y, dx, dy):
 
 def make_grd_from_bathymetry(bfit, x_km, dx=500.0, dy=500.0,
                              Lx_km=200, Ly_km=250,
-                             output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/grd_500_m.nc', # grd_500_m.nc
+                             output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/grd_1km_002.nc', # grd_500m.nc, grd_1km.nc
                              spherical=False, angle=0.0):
     """
     Generate a ROMS C-grid using a 1D bathymetry profile.
