@@ -1,4 +1,4 @@
-!
+!!
       SUBROUTINE ana_humid (ng, tile, model)
 !
 !! git $Id$
@@ -90,10 +90,22 @@
 !  Set analytical surface air humidity.
 !-----------------------------------------------------------------------
 !
-#if defined LAKE_ICE || defined BEAUFORT_JET_ICE_BULK_FLUXES || defined BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD
+#if defined BENCHMARK
       DO j=JstrT,JendT
         DO i=IstrT,IendT
           Hair(i,j)=0.8_r8
+        END DO
+      END DO
+#elif defined BL_TEST
+      DO j=JstrT,JendT
+        DO i=IstrT,IendT
+          Hair(i,j)=0.776_r8
+        END DO
+      END DO
+#elif defined BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD
+      DO j=JstrT,JendT
+        DO i=IstrT,IendT
+          Hair(i,j)=0.85_r8
         END DO
       END DO
 #else

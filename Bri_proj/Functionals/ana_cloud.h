@@ -115,6 +115,8 @@
           Cval=0.0_r8
         END IF
       END DO
+#elif defined BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD
+      Cval=0.87_r8
 #else
       Cval=0.65_r8
 #endif
