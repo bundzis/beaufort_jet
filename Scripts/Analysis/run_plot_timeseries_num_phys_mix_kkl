@@ -1,0 +1,15 @@
+#!/bin/bash
+#SBATCH --job-name=plot_timeseries_num_phys_mix_kkl        #Set the job name to "JobExample1"
+#SBATCH -C cpu
+#SBATCH --qos=regular 
+#SBATCH --time=11:00:00          
+#SBATCH --nodes=1
+#SBATCH --ntasks=128
+#SBATCH --ntasks-per-node=128
+#SBATCH --account=m4304
+#SBATCH --output=plot_timeseries_num_phys_mix_kkl_001.out         #Send stdout/err to "Example1Out.[jobID]"
+
+module load conda
+conda activate xroms
+
+python plot_timeseries_num_phys_mix_kkl.py
