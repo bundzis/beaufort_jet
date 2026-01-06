@@ -538,7 +538,7 @@ def plot_salt_temp_uv_mix(time_idx, plot_dir, plot_name):
     #print(f'/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/Movies/Surf_temp_salt_vort_ice/Plots01/surf_temp_salt_aice_icethick_rvort_tnum_{i}.png')
    
     plt.savefig(
-        f'/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/Movies/Salt_temp_uv_mix/'+plot_dir+'/'+plot_name+'{i}.png',
+        f'/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/Movies/Salt_temp_uv_mix/'+plot_dir+'/'+plot_name+f'{i}.png',
         dpi=200, bbox_inches='tight'
     )
     plt.close(fig)  # Close to avoid memory leaks
