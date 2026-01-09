@@ -183,26 +183,43 @@ def calc_save_phy_num_mixing_roms(avg_file, min_xi_idx, max_xi_idx, min_eta_idx,
         # Make the xi and eta slices
         xi_slice = slice(min_xi_idx, max_xi_idx)
         eta_slice = slice(min_eta_idx, max_eta_idx)
+ 
+        # OG Way
+        # # Get physical mixing from the output
+        # # Salinity (2-hourly)
+        # print('started calculating physical salt mixing', flush=True)
+        # Akr_rho = grid.interp(ds.AKr, 'Z')
+        # mphys = (Akr_rho*ds.dV).isel(eta_rho = eta_slice, xi_rho = xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
+        # mphys.attrs = ''
 
-        # Get physical mixing from the output
-        # Salinity (2-hourly)
-        print('started calculating physical salt mixing', flush=True)
+        # # Temperature (2-hourly)
+        # print('started calculating physical temp mixing', flush=True)
+        # Akrt_rho = grid.interp(ds.AKrt, 'Z')
+        # mphyt = (Akrt_rho*ds.dV).isel(eta_rho = eta_slice, xi_rho = xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
+        # mphyt.attrs = ''
+
+        # # Get numerical mixing from the output
+        # # Numerical mixing (2-hourly)
+        # print('started calculating numerical salt mixing', flush=True)
+        # mnum_salt_dv = (ds.dye_03*ds.dV).isel(eta_rho = eta_slice, xi_rho=xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
+        # print('started calculating numerical temp mixing', flush=True)
+        # mnum_temp_dv = (ds.dye_06*ds.dV).isel(eta_rho = eta_slice, xi_rho=xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
+
+        # Faster?
+        # 1. Define the calculations (Lazy/Dask)
         Akr_rho = grid.interp(ds.AKr, 'Z')
-        mphys = (Akr_rho*ds.dV).isel(eta_rho = eta_slice, xi_rho = xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
-        mphys.attrs = ''
-
-        # Temperature (2-hourly)
-        print('started calculating physical temp mixing', flush=True)
         Akrt_rho = grid.interp(ds.AKrt, 'Z')
-        mphyt = (Akrt_rho*ds.dV).isel(eta_rho = eta_slice, xi_rho = xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
-        mphyt.attrs = ''
+        
+        mphys_lazy = (Akr_rho * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
+        mphyt_lazy = (Akrt_rho * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
+        mnum_salt_lazy = (ds.dye_03 * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
+        mnum_temp_lazy = (ds.dye_06 * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
 
-        # Get numerical mixing from the output
-        # Numerical mixing (2-hourly)
-        print('started calculating numerical salt mixing', flush=True)
-        mnum_salt_dv = (ds.dye_03*ds.dV).isel(eta_rho = eta_slice, xi_rho=xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
-        print('started calculating numerical temp mixing', flush=True)
-        mnum_temp_dv = (ds.dye_06*ds.dV).isel(eta_rho = eta_slice, xi_rho=xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
+        # 2. Compute everything in ONE go to save memory and time
+        print('Starting simultaneous computation of all mixing terms...', flush=True)
+        results = xr.compute(mphys_lazy, mphyt_lazy, mnum_salt_lazy, mnum_temp_lazy)
+        mphys, mphyt, mnum_salt_dv, mnum_temp_dv = results
+        print('Computation complete.', flush=True)
 
         
         # Save to a netcdf
@@ -234,9 +251,12 @@ def calc_save_phy_num_mixing_roms(avg_file, min_xi_idx, max_xi_idx, min_eta_idx,
         roms_phy_num_mix_salt_temp['mnum_temp_dv'].attrs['units'] = '(C)\u00b2(m\u00b3/s))'
         print('done adding attributes to netcdf', flush=True)
 
+        # Use encoding to keep file size down
+        encoding = {var: {'zlib': True, 'complevel': 1} for var in roms_phy_num_mix_salt_temp.data_vars}
+
         # Save to a netcdf
         # Run with ice (change name based on the run being analyzed)
-        roms_phy_num_mix_salt_temp.to_netcdf(output_file)
+        roms_phy_num_mix_salt_temp.to_netcdf(output_file, encoding=encoding)
         print('saved to netcdf', flush=True)
 
 
