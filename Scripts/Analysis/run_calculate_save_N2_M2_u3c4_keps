@@ -3,18 +3,18 @@
 #SBATCH -C cpu
 #SBATCH --qos=regular 
 #SBATCH --time=21:00:00          
-#SBATCH --nodes=1
-#SBATCH --ntasks=128
+#SBATCH --nodes=3
+#SBATCH --ntasks=384
 #SBATCH --ntasks-per-node=128
-#SBATCH --account=m4304
+#SBATCH --account=m4572
 #SBATCH --output=calculate_save_N2_M2_u3c4_keps_001.out         #Send stdout/err to "Example1Out.[jobID]"
 
 module load conda
 conda activate xroms
 
 # Define variables
-INPUT_PATH='/global/cfs/cdirs/m4572/dylan617/beaufort_jet/runs/roms_avg_ice_500m_w_dvd_constant_forcing_u3c4_keps*.nc'
-OUT_PATH='/global/cfs/cdirs/m4572/bundzis/roms_idealized_beaufort_jet/Post_process_data/roms_N2_M2_2hr_500m_const_forc_u3c4_keps_001.nc'
+INPUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/roms_avg_ice_500m_w_dvd_constant_forcing_u3c4_keps*.nc'
+OUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/Post_process_data/roms_N2_M2_2hr_500m_const_forc_u3c4_keps_001.nc'
 
 # Call the python script
 python3 calculate_save_N2_M2.py \
