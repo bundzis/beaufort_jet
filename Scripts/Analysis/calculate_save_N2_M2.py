@@ -175,22 +175,22 @@ def calc_save_N2_M2_roms(avg_file, min_xi_idx, max_xi_idx, min_eta_idx, max_eta_
     roms_M2_N2 = xr.Dataset(
     data_vars=dict(
         N2=(['ocean_time', 's_rho', 'eta_rho', 'xi_rho'], N2[:,1:,:,:].values),
-        #n2_bins=(['n2_bin_len'], n2_bins),
         n2_pdf=(['ocean_time', 'n2_bins'], n2_pdf.values),
         M2=(['ocean_time', 's_rho', 'eta_rho', 'xi_rho'], M2[:,:,:,:].values),
-        #m2_bins=(['m2_bin_len'], m2_bins),
         m2_pdf=(['ocean_time', 'm2_bins'], m2_pdf.values),
+        #n2_bins=(['n2_bin_len'], n2_bins),
+        #m2_bins=(['m2_bin_len'], m2_bins),
     ),
     coords=dict(
         ocean_time=('ocean_time', time),
-        #ocean_time_short=('ocean_time_short', time_short),
-        #n2_bin_len=('n2_bin_len', len(n2_bins)),
-        #m2_bin_len=('m2_bin_len', len(m2_bins)),
         n2_bins=('n2_bins', n2_bins[:-1]), 
         m2_bins=('m2_bins', m2_bins[:-1]),
         s_rho=('s_rho', ds.s_rho.values),
         eta_rho=('eta_rho', ds.eta_rho.values),
         xi_rho=('xi_rho', ds.xi_rho.values),
+        #ocean_time_short=('ocean_time_short', time_short),
+        #n2_bin_len=('n2_bin_len', len(n2_bins)),
+        #m2_bin_len=('m2_bin_len', len(m2_bins)),
     ),
     attrs=dict(description='Time-series of parameters of ROMS output including N2, M2, and their normalized PDFs and bins from 2-hourly model output')
 )
@@ -212,8 +212,17 @@ def calc_save_N2_M2_roms(avg_file, min_xi_idx, max_xi_idx, min_eta_idx, max_eta_
     #roms_M2_N2['m2_bins'].attrs['units'] = '($s^{-2}$)'
     print('done adding attributes to netcdf', flush=True)
 
+    # Define compression settings for the data variables
+    # zlib=True enables compression, complevel=1 is fast and efficient
+    encoding = {
+        'N2': {'zlib': True, 'complevel': 1},
+        'M2': {'zlib': True, 'complevel': 1},
+        'n2_pdf': {'zlib': True, 'complevel': 1},
+        'm2_pdf': {'zlib': True, 'complevel': 1}
+    }
+
     # Save to a netcdf
-    roms_M2_N2.to_netcdf(output_file)
+    roms_M2_N2.to_netcdf(output_file, encoding=encoding, engine='netcdf4')
     print('saved to netcdf', flush=True)
 
 
