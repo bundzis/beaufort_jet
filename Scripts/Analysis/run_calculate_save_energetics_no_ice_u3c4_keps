@@ -14,7 +14,7 @@ conda activate xroms
 
 # Define variables
 INPUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/roms_avg_no_ice_500m_w_dvd_constant_forcing_u3c4_keps_*.nc'
-OUT_PATH='/global/cfs/cdirs/m4572/bundzis/roms_idealized_beaufort_jet/Post_process_data/roms_energetics_2hr_500m_const_forc_no_ice_u3c4_keps_001.nc'
+OUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/Post_process_data/roms_energetics_2hr_500m_const_forc_no_ice_u3c4_keps_001.nc'
 
 # Call the python script
 python3 calculate_save_energetics.py \
