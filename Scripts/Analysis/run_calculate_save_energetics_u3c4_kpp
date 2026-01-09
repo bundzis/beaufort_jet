@@ -13,8 +13,8 @@ module load conda
 conda activate xroms
 
 # Define variables
-INPUT_PATH='/global/cfs/cdirs/m4572/dylan617/beaufort_jet/runs/roms_avg_ice_500m_w_dvd_constant_forcing_u3c4_kpp*.nc'
-OUT_PATH='/global/cfs/cdirs/m4572/bundzis/roms_idealized_beaufort_jet/Post_process_data/roms_energetics_2hr_500m_const_forc_u3c4_kpp_001.nc'
+INPUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/roms_avg_ice_500m_w_dvd_constant_forcing_u3c4_kpp*.nc'
+OUT_PATH='/global/cfs/cdirs/m4572/bundzis/roms_idealized_beaufort_jet/Post_process_data/roms_energetics_2hr_500m_const_forc_u3c4_kpp_002.nc'
 
 # Call the python script
 python3 calculate_save_energetics.py \
