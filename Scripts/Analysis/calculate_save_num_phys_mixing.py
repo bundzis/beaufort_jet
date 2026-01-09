@@ -176,7 +176,8 @@ def calc_save_phy_num_mixing_roms(avg_file, min_xi_idx, max_xi_idx, min_eta_idx,
         
         # Load in the data
         #ds, grid = xroms.open_mfnetcdf(glob(avg_file))
-        ds, grid = open_mfroms(glob(avg_file))
+        path = glob.glob(avg_file)
+        ds, grid = open_mfroms(path)
         add_derivatives(ds, grid)
 
         # Make the xi and eta slices
