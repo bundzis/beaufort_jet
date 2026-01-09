@@ -3,7 +3,7 @@
 #SBATCH -C cpu
 #SBATCH --qos=regular 
 #SBATCH --time=21:00:00          
-#SBATCH --nodes=1
+#SBATCH --nodes=2
 #SBATCH --ntasks=128
 #SBATCH --ntasks-per-node=128
 #SBATCH --account=m4572
