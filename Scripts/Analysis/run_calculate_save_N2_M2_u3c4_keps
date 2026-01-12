@@ -2,9 +2,9 @@
 #SBATCH --job-name=calculate_save_N2_M2_u3c4_keps        #Set the job name to "JobExample1"
 #SBATCH -C cpu
 #SBATCH --qos=regular 
-#SBATCH --time=21:00:00          
-#SBATCH --nodes=3
-#SBATCH --ntasks=384
+#SBATCH --time=18:00:00          
+#SBATCH --nodes=4
+#SBATCH --ntasks=512
 #SBATCH --ntasks-per-node=128
 #SBATCH --account=m4572
 #SBATCH --output=calculate_save_N2_M2_u3c4_keps_001.out         #Send stdout/err to "Example1Out.[jobID]"

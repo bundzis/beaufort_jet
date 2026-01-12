@@ -4,7 +4,7 @@
 #SBATCH --qos=regular 
 #SBATCH --time=21:00:00          
 #SBATCH --nodes=2
-#SBATCH --ntasks=128
+#SBATCH --ntasks=256
 #SBATCH --ntasks-per-node=128
 #SBATCH --account=m4572
 #SBATCH --output=calculate_save_num_phys_mixing_no_ice_u3c4_keps_001.out         #Send stdout/err to "Example1Out.[jobID]"
