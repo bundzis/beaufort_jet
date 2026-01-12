@@ -22,6 +22,7 @@
 # Load in the packages
 import numpy as np
 import glob
+import dask
 import warnings
 import xarray as xr
 import xroms
@@ -185,41 +186,41 @@ def calc_save_phy_num_mixing_roms(avg_file, min_xi_idx, max_xi_idx, min_eta_idx,
         eta_slice = slice(min_eta_idx, max_eta_idx)
  
         # OG Way
-        # # Get physical mixing from the output
-        # # Salinity (2-hourly)
-        # print('started calculating physical salt mixing', flush=True)
-        # Akr_rho = grid.interp(ds.AKr, 'Z')
-        # mphys = (Akr_rho*ds.dV).isel(eta_rho = eta_slice, xi_rho = xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
-        # mphys.attrs = ''
-
-        # # Temperature (2-hourly)
-        # print('started calculating physical temp mixing', flush=True)
-        # Akrt_rho = grid.interp(ds.AKrt, 'Z')
-        # mphyt = (Akrt_rho*ds.dV).isel(eta_rho = eta_slice, xi_rho = xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
-        # mphyt.attrs = ''
-
-        # # Get numerical mixing from the output
-        # # Numerical mixing (2-hourly)
-        # print('started calculating numerical salt mixing', flush=True)
-        # mnum_salt_dv = (ds.dye_03*ds.dV).isel(eta_rho = eta_slice, xi_rho=xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
-        # print('started calculating numerical temp mixing', flush=True)
-        # mnum_temp_dv = (ds.dye_06*ds.dV).isel(eta_rho = eta_slice, xi_rho=xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
-
-        # Faster?
-        # 1. Define the calculations (Lazy/Dask)
+        # Get physical mixing from the output
+        # Salinity (2-hourly)
+        print('started calculating physical salt mixing', flush=True)
         Akr_rho = grid.interp(ds.AKr, 'Z')
-        Akrt_rho = grid.interp(ds.AKrt, 'Z')
-        
-        mphys_lazy = (Akr_rho * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
-        mphyt_lazy = (Akrt_rho * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
-        mnum_salt_lazy = (ds.dye_03 * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
-        mnum_temp_lazy = (ds.dye_06 * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
+        mphys = (Akr_rho*ds.dV).isel(eta_rho = eta_slice, xi_rho = xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
+        mphys.attrs = ''
 
-        # 2. Compute everything in ONE go to save memory and time
-        print('Starting simultaneous computation of all mixing terms...', flush=True)
-        results = xr.compute(mphys_lazy, mphyt_lazy, mnum_salt_lazy, mnum_temp_lazy)
-        mphys, mphyt, mnum_salt_dv, mnum_temp_dv = results
-        print('Computation complete.', flush=True)
+        # Temperature (2-hourly)
+        print('started calculating physical temp mixing', flush=True)
+        Akrt_rho = grid.interp(ds.AKrt, 'Z')
+        mphyt = (Akrt_rho*ds.dV).isel(eta_rho = eta_slice, xi_rho = xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
+        mphyt.attrs = ''
+
+        # Get numerical mixing from the output
+        # Numerical mixing (2-hourly)
+        print('started calculating numerical salt mixing', flush=True)
+        mnum_salt_dv = (ds.dye_03*ds.dV).isel(eta_rho = eta_slice, xi_rho=xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
+        print('started calculating numerical temp mixing', flush=True)
+        mnum_temp_dv = (ds.dye_06*ds.dV).isel(eta_rho = eta_slice, xi_rho=xi_slice).where(ds.z_rho>-z_slice).sum(['eta_rho', 'xi_rho', 's_rho']).compute()
+
+        # # Faster?
+        # # 1. Define the calculations (Lazy/Dask)
+        # Akr_rho = grid.interp(ds.AKr, 'Z')
+        # Akrt_rho = grid.interp(ds.AKrt, 'Z')
+        
+        # mphys_lazy = (Akr_rho * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
+        # mphyt_lazy = (Akrt_rho * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
+        # mnum_salt_lazy = (ds.dye_03 * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
+        # mnum_temp_lazy = (ds.dye_06 * ds.dV).isel(eta_rho=eta_slice, xi_rho=xi_slice).where(ds.z_rho > -z_slice).sum(['eta_rho', 'xi_rho', 's_rho'])
+
+        # # 2. Compute everything in ONE go to save memory and time
+        # print('Starting simultaneous computation of all mixing terms...', flush=True)
+        # results = dask.compute(mphys_lazy, mphyt_lazy, mnum_salt_lazy, mnum_temp_lazy)
+        # mphys, mphyt, mnum_salt_dv, mnum_temp_dv = results
+        # print('Computation complete.', flush=True)
 
         
         # Save to a netcdf
