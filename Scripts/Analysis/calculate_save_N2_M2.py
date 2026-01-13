@@ -165,12 +165,14 @@ def calc_save_N2_M2_roms(avg_file, min_xi_idx, max_xi_idx, min_eta_idx, max_eta_
     print('normalized M2 pdf', flush=True)
     print('m2_pdf shape: ', np.shape(m2_pdf), flush=True)
 
+    print('started making time', flush=True)
     # Make a time to use for saving the data
     time_tmp = ds['ocean_time']
     t0 = time_tmp.values[0]
     time = np.array([(t - t0).total_seconds() / 86400 for t in time_tmp.values])
     #time_short = time[0:2]
 
+    print('started making xarray dataset for netcdf', flush=True)
     # Save these to a netcdf
     roms_M2_N2 = xr.Dataset(
     data_vars=dict(
