@@ -2,9 +2,9 @@
 #SBATCH --job-name=calculate_save_N2_M2_u3c4_keps        #Set the job name to "JobExample1"
 #SBATCH -C cpu
 #SBATCH --qos=regular 
-#SBATCH --time=18:00:00          
-#SBATCH --nodes=4
-#SBATCH --ntasks=512
+#SBATCH --time=10:00:00          
+#SBATCH --nodes=8
+#SBATCH --ntasks=1024
 #SBATCH --ntasks-per-node=128
 #SBATCH --account=m4572
 #SBATCH --output=calculate_save_N2_M2_u3c4_keps_001.out         #Send stdout/err to "Example1Out.[jobID]"
@@ -13,7 +13,7 @@ module load conda
 conda activate xroms
 
 # Define variables
-INPUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/roms_avg_ice_500m_w_dvd_constant_forcing_u3c4_keps*.nc'
+INPUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/roms_avg_ice_500m_w_dvd_constant_forcing_u3c4_keps_*.nc'
 OUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_scratch/Post_process_data/roms_N2_M2_2hr_500m_const_forc_u3c4_keps_001.nc'
 
 # Call the python script
