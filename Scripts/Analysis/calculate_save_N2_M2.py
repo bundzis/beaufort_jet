@@ -172,19 +172,23 @@ def calc_save_N2_M2_roms(avg_file, min_xi_idx, max_xi_idx, min_eta_idx, max_eta_
     time = np.array([(t - t0).total_seconds() / 86400 for t in time_tmp.values])
     #time_short = time[0:2]
 
+    # Write to netcdf the simple way
+    #print('started writing to netcdf simple way')
+    #N2[:980,1:,:,:].to_netcdf()
+
     print('started making xarray dataset for netcdf', flush=True)
     # Save these to a netcdf
     roms_M2_N2 = xr.Dataset(
     data_vars=dict(
-        N2=(['ocean_time', 's_rho', 'eta_rho', 'xi_rho'], N2[:,1:,:,:].values),
-        n2_pdf=(['ocean_time', 'n2_bins'], n2_pdf.values),
-        M2=(['ocean_time', 's_rho', 'eta_rho', 'xi_rho'], M2[:,:,:,:].values),
-        m2_pdf=(['ocean_time', 'm2_bins'], m2_pdf.values),
+        N2=(['ocean_time', 's_rho', 'eta_rho', 'xi_rho'], N2[:980,1:,:,:].values),
+        n2_pdf=(['ocean_time', 'n2_bins'], n2_pdf[:980,:].values),
+        M2=(['ocean_time', 's_rho', 'eta_rho', 'xi_rho'], M2[:980,:,:,:].values),
+        m2_pdf=(['ocean_time', 'm2_bins'], m2_pdf[:980,:].values),
         #n2_bins=(['n2_bin_len'], n2_bins),
         #m2_bins=(['m2_bin_len'], m2_bins),
     ),
     coords=dict(
-        ocean_time=('ocean_time', time),
+        ocean_time=('ocean_time', time[:980]),
         n2_bins=('n2_bins', n2_bins[:-1]), 
         m2_bins=('m2_bins', m2_bins[:-1]),
         s_rho=('s_rho', ds.s_rho.values),
