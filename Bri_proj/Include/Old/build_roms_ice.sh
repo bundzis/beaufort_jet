@@ -2,7 +2,7 @@
 #
 # git $Id$
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-# Copyright (c) 2002-2026 The ROMS Group                                :::
+# Copyright (c) 2002-2025 The ROMS Group                                :::
 #   Licensed under a MIT/X style license                                :::
 #   See License_ROMS.md                                                 :::
 #::::::::::::::::::::::::::::::::::::::::::::::::::::: Hernan G. Arango :::
@@ -158,7 +158,7 @@ done
 # determine the name of the ".h" header file with the application
 # CPP definitions.
 
-export   ROMS_APPLICATION=BEAUFORT_JET_ICE_W_DVD
+export   ROMS_APPLICATION=BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD
 
 # Set a local environmental variable to define the path to the directories
 # where the ROMS source code is located (MY_ROOT_DIR), and this project's
@@ -173,7 +173,7 @@ else
   export      MY_ROOT_DIR=/global/homes/b/bundzis/Projects # ${HOME}/ocean/repository/git 
 fi
 
-export     MY_PROJECT_DIR=/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated # ${PWD} 
+export     MY_PROJECT_DIR=/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet # ${PWD} 
 
 # The path to the user's local current ROMS source code.
 #
@@ -185,7 +185,7 @@ export     MY_PROJECT_DIR=/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealiz
 # This script allows for differing paths to the code and inputs on other
 # computers.
 
- export       MY_ROMS_SRC=/global/homes/b/bundzis/Repos/roms # ${MY_ROOT_DIR}/roms
+ export       MY_ROMS_SRC=/global/homes/b/bundzis/Repos/roms # ${MY_ROOT_DIR}/roms 
 
 # Set path of the directory containing makefile configuration (*.mk) files.
 # The user has the option to specify a customized version of these files
@@ -216,6 +216,16 @@ if [ $pio_lib -eq 1 ]; then
   export     MY_CPP_FLAGS="${MY_CPP_FLAGS} -DPIO_LIB"
 fi
 
+#  export      MY_CPP_FLAGS="${MY_CPP_FLAGS} -DAVERAGES"      # From Lake Ice test case
+
+#  export      MY_CPP_FLAGS="${MY_CPP_FLAGS} -DICE_MODEL"      # From Lake Ice test case
+
+#  export      MY_CPP_FLAGS="${MY_CPP_FLAGS} -DBULK_FLUXES"      # From Lake Ice test case
+ 
+ #export      MY_CPP_FLAGS="${MY_CPP_FLAGS} -DGLS_MIXING"
+
+#  export      MY_CPP_FLAGS="${MY_CPP_FLAGS} -DLMD_MIXING"      # From Lake Ice test case
+
 #--------------------------------------------------------------------------
 # Compiler options.
 #--------------------------------------------------------------------------
@@ -232,7 +242,7 @@ fi
 #export         which_MPI=mpich         # compile with MPICH library
 #export         which_MPI=mpich2        # compile with MPICH2 library
 #export         which_MPI=mvapich2      # compile with MVAPICH2 library
- export         which_MPI=openmpi       # compile with OpenMPI library
+#export         which_MPI=openmpi       # compile with OpenMPI library
 
 #export        USE_OpenMP=on            # shared-memory parallelism
 
@@ -244,7 +254,6 @@ export              FORT=gfortran
 if [ $g_flags -eq 1 ]; then
  export         USE_DEBUG=on            # use Fortran debugging flags
 fi
-
  export         USE_LARGE=on            # activate 64-bit compilation
 
 #--------------------------------------------------------------------------
@@ -309,8 +318,7 @@ fi
 
  export     MY_HEADER_DIR=${MY_PROJECT_DIR}
 
- #export MY_ANALYTICAL_DIR=${MY_PROJECT_DIR}
- export MY_ANALYTICAL_DIR=/global/homes/b/bundzis/Repos/beaufort_jet/Bri_proj/Functionals
+ export MY_ANALYTICAL_DIR=${MY_PROJECT_DIR}/Functionals
 
 # Put the binary to execute in the following directory.
 
@@ -371,7 +379,7 @@ if [ $branch -eq 1 ]; then
     echo ""
     echo "Downloading ROMS source code from GitHub: https://github.com/myroms"
     echo ""
-    git clone https://github.com/myroms/roms.git src
+    git clone https://www.github.com/myroms/roms.git src
   fi
   echo ""
   echo "Checking out ROMS GitHub branch: $branch_name"
@@ -444,3 +452,4 @@ else
   echo "${separator}"
   echo ""
 fi
+
