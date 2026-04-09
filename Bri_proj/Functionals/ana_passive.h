@@ -77,7 +77,7 @@
 !  Set analytical initial conditions for passive inert tracers.
 !-----------------------------------------------------------------------
 !
-#if defined BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD
+#if defined BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD || defined BEAUFORT_JET_ICE_W_DVD
 # ifdef AGE_MEAN
       DO ip=1,NPT,2
         itrc=inert(ip)

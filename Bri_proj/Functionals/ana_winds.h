@@ -126,7 +126,7 @@
           END DO
         END DO
 
-#elif defined BEAUFORT_JET_ICE_BULK_FLUXES || defined BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD
+#elif defined BEAUFORT_JET_ICE_BULK_FLUXES || defined BEAUFORT_JET_ICE_BULK_FLUXES_W_DVD || defined BEAUFORT_JET_ICE_W_DVD
        u_wind=-3.0_r8
        v_wind=0.0_r8
         DO j=JstrT,JendT
