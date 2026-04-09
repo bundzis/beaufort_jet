@@ -135,7 +135,7 @@ def make_CGrid(x, y, dx, dy):
 
 def make_grd_from_bathymetry(bfit, x_km, dx=500.0, dy=500.0,
                              Lx_km=200, Ly_km=250,
-                             output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet/Include/grd_1km_002.nc', # grd_500m.nc, grd_1km.nc
+                             output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_001.nc', # grd_500m.nc, grd_1km.nc
                              spherical=False, angle=0.0):
     """
     Generate a ROMS C-grid using a 1D bathymetry profile.
@@ -187,7 +187,8 @@ def make_grd_from_bathymetry(bfit, x_km, dx=500.0, dy=500.0,
     y = grd.y_rho  # shape (eta_rho, xi_rho)
     offshore_dist = np.abs(y)  # or remove abs() if y is strictly positive
 
-    noise_amplitude = 0.01 * h_grid
+    #noise_amplitude = 0.01 * h_grid
+    noise_amplitude = 0.005 * h_grid
     rng = np.random.default_rng(seed=42)
     noise = rng.uniform(-1, 1, size=h_grid.shape) * noise_amplitude
 
@@ -196,10 +197,11 @@ def make_grd_from_bathymetry(bfit, x_km, dx=500.0, dy=500.0,
     h_grid_noisy += noise
 
     # update ROMS grid
-    grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid_noisy))
+    # With noise
+    #grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid_noisy))
     # grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid_noisy))
-
-    # grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid))
+    # Without noise
+    grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid))
 
     # --- Add Coriolis, angle, etc. ---
     # Set Coriolis parameter
