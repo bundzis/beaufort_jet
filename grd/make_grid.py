@@ -198,10 +198,10 @@ def make_grd_from_bathymetry(bfit, x_km, dx=500.0, dy=500.0,
 
     # update ROMS grid
     # With noise
-    #grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid_noisy))
+    grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid_noisy))
     # grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid_noisy))
     # Without noise
-    grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid))
+    #grd['h'] = (['eta_rho', 'xi_rho'], np.abs(h_grid))
 
     # --- Add Coriolis, angle, etc. ---
     # Set Coriolis parameter
