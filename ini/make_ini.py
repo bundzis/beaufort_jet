@@ -17,7 +17,7 @@ Vertical grid parameters (S-coordinate):
    zlevs   : 40                # Number of vertical layers
    theta_s : 5.0               # Surface stretching parameter (increases vertical resolution near the surface)
    theta_b : 0.4               # Bottom stretching parameter (increases vertical resolution near the bottom)
-   hc      : 5.0               # Critical depth for stretching functions (m)
+   hc      : 5.0               # Critical depth for stretching functions (m); 5.0, 10.0, 100.0
 
 Lateral buoyancy parameters (for horizontal salinity gradient):
    M20   : 3e-7                # Maximum horizontal density gradient amplitude; 5e-7
@@ -68,7 +68,7 @@ def C(theta_s, theta_b, s):
     else:
         return -C
 
-def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_500m_span_300km_001.nc', # Manually change here depending on resolution
+def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_500m_span_300km_002.nc', # Manually change here depending on resolution
                     grd_path='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_001.nc', # Manually change here depending on resolution
                     zlevs=40, theta_s=5.0, theta_b=0.4, hc=100.0,
                     T0=0.5, Tbot = -1.6, delta = 15.0, H_pyc = -50.0,
@@ -119,7 +119,7 @@ def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_ideal
         salt_1D += (salt_anomaly - salt_anomaly.min())
 
         # Add option for vertical salinity stratification, not needed but nice to have!
-        dSdz = 4e-3 # 2e-3
+        dSdz = 2e-3 # 2e-3, 4e-3
         z_abs = np.abs(z)
         salt = salt_1D + dSdz * z_abs
 
@@ -209,14 +209,14 @@ def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_ideal
     ds['z_rho'] = z_rho
 
     ds.attrs['type'] = 'ROMS Ini file'
-    ds.attrs['Description'] = 'Initial conditions for ideal shelf'
+    ds.attrs['Description'] = 'Initial conditions for ideal shelf; hc = 100, H_pyc = -50, M2_r = 5e3, M2_jet_amp = 4e-7, Dsdz = 2e-3' # EDIT HERE when trying different values to keep track
     ds.attrs['Author'] = 'Dylan Schlichting'
     ds.attrs['Created'] = datetime.now().isoformat()
     print('Writing netcdf INI file: '+output)
     ds.to_netcdf(output)
 
-def add_ice_to_ic(ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_500m_span_300km_001.nc', # Manually change here depending on resolution
-                  ini_modified_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_001.nc'): # Manually change here depending on resolution
+def add_ice_to_ic(ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_500m_span_300km_002.nc', # Manually change here depending on resolution
+                  ini_modified_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_002.nc'): # Manually change here depending on resolution
     '''
     Adds ice variables to initial condition files. Currently, the model will start from an ice-free state,
     so all values are set to zero! 
@@ -269,9 +269,9 @@ def add_ice_to_ic(ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_ide
     ds.to_netcdf(ini_modified_path)
 
 def plot_ic(grd_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_001.nc',  # Manually change here depending on resolution
-            ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_001.nc',  # Manually change here depending on resolution
-            fig_path_plan = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_conditions_500m_span_300km_001.png',  # Manually change here depending on resolution
-            fig_path_cs = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_conditions_cross_section_500m_span_300km_001.png'):  # Manually change here depending on resolution
+            ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_002.nc',  # Manually change here depending on resolution
+            fig_path_plan = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_conditions_500m_span_300km_002.png',  # Manually change here depending on resolution
+            fig_path_cs = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_conditions_cross_section_500m_span_300km_002.png'):  # Manually change here depending on resolution
     '''
     Plots ROMS initial conditions. 
     '''
