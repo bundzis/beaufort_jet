@@ -390,7 +390,7 @@ LtracerSponge == T T F F F F F F                            ! temperature, salin
 
         RDRG == 3.0d-04                    ! m/s
        RDRG2 == 3.0d-03                    ! nondimensional
-         Zob == 0.02d0                     ! m
+         Zob == 0.0005d0                     ! m; 0.02d0 default
          Zos == 0.02d0                     ! m
 
 ! Height (m) of atmospheric measurements for Bulk fluxes parameterization.
@@ -1109,7 +1109,7 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 ! Input NetCDF file names, [1:Ngrids].
 
      GRDNAME == /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_001.nc
-     ININAME == /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_001.nc
+     ININAME == /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_003.nc
      ITLNAME == roms_itl.nc
      IRPNAME == roms_irp.nc
      IADNAME == roms_iad.nc
@@ -1203,15 +1203,15 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
      DAINAME == roms_dai.nc
      GSTNAME == roms_gst.nc
-     RSTNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_rst_ice_500m_span_300km_w_dvd_u3c4_keps_v01.nc
-     HISNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_his_ice_500m_span_300km_w_dvd_u3c4_keps_v01.nc
+     RSTNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_rst_ice_500m_span_300km_w_dvd_u3c4_keps_v03.nc
+     HISNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_his_ice_500m_span_300km_w_dvd_u3c4_keps_v03.nc
      XTRNAME == roms_xtr.nc
      QCKNAME == roms_qck.nc
      TLMNAME == roms_tlm.nc
      TLFNAME == roms_tlf.nc
      ADJNAME == roms_adj.nc
      HARNAME == roms_har.nc
-     AVGNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_avg_ice_500m_span_300km_w_dvd_u3c4_keps_v01.nc
+     AVGNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_avg_ice_500m_span_300km_w_dvd_u3c4_keps_v03.nc
      DIANAME == roms_dia.nc
      STANAME == roms_sta.nc
      FLTNAME == roms_flt.nc
