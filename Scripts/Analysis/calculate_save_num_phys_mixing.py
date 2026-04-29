@@ -236,7 +236,7 @@ def calc_save_phy_num_mixing_roms(avg_file, min_xi_idx, max_xi_idx, min_eta_idx,
             coords=dict(
                 ocean_time=('ocean_time', ds.ocean_time.values)
             ),
-            attrs=dict(description='Time-series ROMS output including physical and numerical mixing of salinity and temperature from 2-hourly model output; uses /global/cfs/cdirs/m4572/dylan617/beaufort_jet/runs/roms_avg_ice_500m_w_dvd_constant_forcing_u3c4_kpp_*.nc')
+            attrs=dict(description='Time-series ROMS output including physical and numerical mixing of salinity and temperature from 2-hourly model output; uses /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_avg_ice_500m_span_300km_w_dvd_*.nc')
         )
 
         print('started adding attributes to netcdf', flush=True)
