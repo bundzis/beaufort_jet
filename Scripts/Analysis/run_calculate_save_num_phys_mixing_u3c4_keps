@@ -1,0 +1,32 @@
+#!/bin/bash
+#SBATCH --job-name=calculate_save_num_phys_mixing_u3c4_keps_updated        #Set the job name to "JobExample1"
+#SBATCH -C cpu
+#SBATCH --qos=regular 
+#SBATCH --time=21:00:00          
+#SBATCH --nodes=1
+#SBATCH --ntasks=128
+#SBATCH --ntasks-per-node=128
+#SBATCH --account=m4572
+#SBATCH --output=calculate_save_num_phys_mixing_u3c4_keps_updated_001.out         #Send stdout/err to "Example1Out.[jobID]"
+
+module load conda
+conda activate xroms
+
+# Define variables
+# UPDATED
+INPUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_avg_ice_500m_span_300km_w_dvd_u3c4_keps_v03_0001.nc'
+OUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/Post_process_data/Energetics/roms_energetics_2hr_500m_const_forc_u3c4_keps_updated_001.nc'
+
+# Call the python script
+python3 calculate_save_num_phys_mixing.py \
+    --avg_file "$INPUT_PATH" \
+    --min_xi 1 \
+    --max_xi 399 \
+    --min_eta 140 \
+    --max_eta 420 \
+    --z_slice 200.0 \
+    --output "$OUT_PATH"
+
+echo "Analysis complete for $OUT_PATH"
+
+
