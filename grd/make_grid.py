@@ -6,6 +6,8 @@ fits a tanh function to represent the shelf slope, and generates a ROMS C-grid
 with optional random bathymetry noise. The grid and bathymetry are saved to a 
 NetCDF file for use in ROMS simulations.
 
+Bri likes to call as “python grd/make_grid.py --dx=500 --dy=500 --Lx_km=201 --Ly_km=301”
+
 Command-line arguments:
 
 --dx       : float, optional, default=1000
@@ -135,7 +137,7 @@ def make_CGrid(x, y, dx, dy):
 
 def make_grd_from_bathymetry(bfit, x_km, dx=500.0, dy=500.0,
                              Lx_km=200, Ly_km=250,
-                             output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_001.nc', # grd_500m.nc, grd_1km.nc
+                             output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_002.nc', # grd_500m.nc, grd_1km.nc
                              spherical=False, angle=0.0):
     """
     Generate a ROMS C-grid using a 1D bathymetry profile.
@@ -228,21 +230,31 @@ def make_grd_from_bathymetry(bfit, x_km, dx=500.0, dy=500.0,
     grd['xl'] = x_vert.max()
     grd['el'] = y_vert.max()
 
-    visc_factor = xr.ones_like(grd.pm)
-    visc_factor.attrs.update({
+    # Lateral mixing & sponge layer parameters. 
+    # 10 points going from 20.0 to 1.0
+    # We use [:, None] to transform it from shape (10,) to (10, 1) for broadcasting
+    taper = np.linspace(20.0, 1.0, 10)[:, None][::-1]
+
+    # Viscosity factor
+    visc_factor = np.ones_like(grd.pm.values)
+    visc_factor[-10:, :] = taper 
+    grd['visc_factor'] = (grd.pm.dims, visc_factor)
+    grd['visc_factor'].attrs.update({
         'long_name': 'Horizontal viscosity factor at RHO-points',
         'units': 'nondimensional',
         'field': 'VISC_FACTOR, scalar'
     })
-    grd['visc_factor'] = visc_factor
 
-    diff_factor = xr.ones_like(grd.pm)
-    diff_factor.attrs.update({
+    # Diffusivity factor
+    diff_factor = np.ones_like(grd.pm.values)
+    diff_factor[-10:, :] = taper
+    grd['diff_factor'] = (grd.pm.dims, diff_factor)
+    grd['diff_factor'].attrs.update({
         'long_name': 'Horizontal diffusivity factor at RHO-points',
         'units': 'nondimensional',
         'field': 'DIFF_FACTOR, scalar'
     })
-    grd['diff_factor'] = diff_factor
+
     # --- Write file ---
     if os.path.exists(output):
         os.remove(output)
@@ -297,16 +309,29 @@ def fit_tanh_bathymetry(x_km, depth_smooth):
 
     def tanh_bathymetry(x, H_min, H_offshore, x_mid, L):
         return H_min + 0.5 * (H_offshore - H_min) * (1 + np.tanh((x - x_mid) / L))
+    
+    def smooth_cap_depth(h, Hmax=1300.0, transition=200.0):
+        """
+        Smoothly cap bathymetry at Hmax without affecting values below Hmax.
+        """
+        h = h.copy()
+        deep = h > Hmax
+        h[deep] = Hmax + transition * np.tanh((h[deep] - Hmax) / transition)
+
+        return h
 
     # Initial guesses
     H_min_guess = depth_smooth[0]
     H_offshore_guess = depth_smooth[-1]
+    print(H_offshore_guess)
     x_mid_guess = x_km[np.argmax(np.gradient(depth_smooth, x_km))]
     L_guess = 60  # typical slope width (km)
     p0 = [H_min_guess, H_offshore_guess, x_mid_guess - 10, L_guess]
 
     popt, _ = curve_fit(tanh_bathymetry, x_km, depth_smooth, p0=p0)
     b_fit = np.abs(tanh_bathymetry(x_km, *popt))
+    # Cap at 1500 m with smooth transition
+    b_fit = smooth_cap_depth(b_fit, Hmax=1300.0, transition=200.0)
 
     # Artificially shoal the shelf to match better with observations. Set minimum H 
     # to 5 m to be more realistic. This should be improved, but is good enough for 
