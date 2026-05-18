@@ -4,6 +4,8 @@ by Rob Hetland in the 2010s! The flow is configured in partial thermal wind bala
 instabilities. Note that the thermal wind balance is approximate since we only use the lateral salinity gradient to compute 
 the balanced velocity.
 
+Bri calls as "python ini/make_ini.py "
+
 Horizontal stratification is controlled by salinity (S), and vertical stratification is controlled by temperature (T). 
 The density is computed using a linear equation of state:
 
@@ -68,8 +70,8 @@ def C(theta_s, theta_b, s):
     else:
         return -C
 
-def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_500m_span_300km_003.nc', # Manually change here depending on resolution
-                    grd_path='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_001.nc', # Manually change here depending on resolution
+def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_500m_span_300km_004.nc', # Manually change here depending on resolution
+                    grd_path='/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_002.nc', # Manually change here depending on resolution
                     zlevs=40, theta_s=5.0, theta_b=0.4, hc=100.0,
                     T0=0.5, Tbot = -1.6, delta = 15.0, H_pyc = -50.0,
                     S0=30.0, TCOEF=1.7e-4, SCOEF=7.6e-4,
@@ -215,8 +217,8 @@ def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_ideal
     print('Writing netcdf INI file: '+output)
     ds.to_netcdf(output)
 
-def add_ice_to_ic(ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_500m_span_300km_003.nc', # Manually change here depending on resolution
-                  ini_modified_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_003.nc'): # Manually change here depending on resolution
+def add_ice_to_ic(ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_500m_span_300km_004.nc', # Manually change here depending on resolution
+                  ini_modified_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_004.nc'): # Manually change here depending on resolution
     '''
     Adds ice variables to initial condition files. Currently, the model will start from an ice-free state,
     so all values are set to zero! 
@@ -268,10 +270,10 @@ def add_ice_to_ic(ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_ide
                               attrs={'units': 'Newton meter-1'})
     ds.to_netcdf(ini_modified_path)
 
-def plot_ic(grd_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_001.nc',  # Manually change here depending on resolution
-            ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_003.nc',  # Manually change here depending on resolution
-            fig_path_plan = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_conditions_500m_span_300km_003.png',  # Manually change here depending on resolution
-            fig_path_cs = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_conditions_cross_section_500m_span_300km_003.png'):  # Manually change here depending on resolution
+def plot_ic(grd_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_002.nc',  # Manually change here depending on resolution
+            ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_004.nc',  # Manually change here depending on resolution
+            fig_path_plan = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/Plots/ini_conditions_500m_span_300km_004.png',  # Manually change here depending on resolution
+            fig_path_cs = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/Plots/ini_conditions_cross_section_500m_span_300km_004.png'):  # Manually change here depending on resolution
     '''
     Plots ROMS initial conditions. 
     '''
