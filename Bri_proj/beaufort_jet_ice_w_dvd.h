@@ -25,7 +25,8 @@
 /* Turbulence Closure/Vertical Mixing */
 #define GLS_MIXING
 #ifdef GLS_MIXING
-# define CANUTO_A
+# define CANUTO_A  /* OG */
+# undef CANUTO_B   /* For Testing */
 # define N2S2_HORAVG
 #endif
 
