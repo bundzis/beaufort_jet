@@ -377,7 +377,7 @@ LtracerSponge == T T F F F F F F                            ! temperature, salin
        GLS_P == -1.0d0                           ! K-omega
        GLS_M == 0.5d0
        GLS_N == -1.0d0
-    GLS_Kmin == 7.6d-6                           ! could try 1.0d-9 because that was used for GOTM
+    GLS_Kmin == 7.6d-6                           ! could try 1.0d-9 because that was used for GOTM; 1e-10 from forum post?
     GLS_Pmin == 1.0d-12
 
     GLS_CMU0 == 0.5477d0
@@ -1124,8 +1124,8 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
 ! Input NetCDF file names, [1:Ngrids].
 
-     GRDNAME == /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_001.nc
-     ININAME == /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_003.nc
+     GRDNAME == /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_002.nc
+     ININAME == /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_004.nc
      ITLNAME == roms_itl.nc
      IRPNAME == roms_irp.nc
      IADNAME == roms_iad.nc
@@ -1219,15 +1219,15 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
      DAINAME == roms_dai.nc
      GSTNAME == roms_gst.nc
-     RSTNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_rst_ice_500m_span_300km_w_dvd_u3c4_komega_v01.nc
-     HISNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_his_ice_500m_span_300km_w_dvd_u3c4_komega_v01.nc
+     RSTNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_rst_ice_500m_span_300km_w_dvd_u3c4_komega_v04.nc
+     HISNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_his_ice_500m_span_300km_w_dvd_u3c4_komega_v04.nc
      XTRNAME == roms_xtr.nc
      QCKNAME == roms_qck.nc
      TLMNAME == roms_tlm.nc
      TLFNAME == roms_tlf.nc
      ADJNAME == roms_adj.nc
      HARNAME == roms_har.nc
-     AVGNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_avg_ice_500m_span_300km_w_dvd_u3c4_komega_v01.nc
+     AVGNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_avg_ice_500m_span_300km_w_dvd_u3c4_komega_v04.nc
      DIANAME == roms_dia.nc
      STANAME == roms_sta.nc
      FLTNAME == roms_flt.nc
