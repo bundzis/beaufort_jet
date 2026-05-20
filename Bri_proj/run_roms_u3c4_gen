@@ -2,7 +2,7 @@
 #SBATCH --job-name=beaufort_jet_u3c4_gen        #Set the job name to "JobExample1"
 #SBATCH -C cpu
 #SBATCH --qos=regular 
-#SBATCH --time=12:00:00          
+#SBATCH --time=8:00:00          
 #SBATCH --nodes=4
 #SBATCH --ntasks=512
 #SBATCH --ntasks-per-node=128
@@ -15,4 +15,4 @@ source perlmutter_env.sh
 
 OCEAN_IN=${WORK_DIR}/roms_beaufort_jet_ice_w_dvd_u3c4_gen.in
 ROMS_EXEC=romsM
-srun -n 512 ${WORK_DIR}/project/${ROMS_EXEC} ${OCEAN_IN}
+srun -n 512 ${WORK_DIR}/${ROMS_EXEC} ${OCEAN_IN}
