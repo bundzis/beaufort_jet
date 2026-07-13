@@ -2,12 +2,12 @@
 #SBATCH --job-name=beaufort_jet_akima_keps        #Set the job name to "JobExample1"
 #SBATCH -C cpu
 #SBATCH --qos=regular 
-#SBATCH --time=8:00:00          
+#SBATCH --time=12:00:00          
 #SBATCH --nodes=4
 #SBATCH --ntasks=512
 #SBATCH --ntasks-per-node=128
 #SBATCH --account=m4304
-#SBATCH --output=roms_beaufort_jet_ice_w_dvd_akima_keps_001.out         #Send stdout/err to "Example1Out.[jobID]"
+#SBATCH --output=roms_beaufort_jet_ice_w_dvd_akima_keps_002.out         #Send stdout/err to "Example1Out.[jobID]"
 
 WORK_DIR=/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated
 cd $WORK_DIR
