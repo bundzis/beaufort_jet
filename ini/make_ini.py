@@ -52,6 +52,7 @@ References:
 
 import numpy as np
 import xarray as xr
+import xroms
 from datetime import datetime
 import matplotlib.pyplot as plt
 import cmocean.cm as cmo
@@ -201,6 +202,41 @@ def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_ideal
     ds['ubar'] = xr.DataArray(np.zeros((1, grd.dims['eta_u'], grd.dims['xi_u'])),
                               dims=['ocean_time', 'eta_u', 'xi_u'],
                               attrs={'units': 'm s-1'})
+    
+    # ----- Start ubar fix -----
+    # Fill with actual ubar values based on initial u profile
+    # (same would be needed for v if v was not set to zero so maybe
+    # update this for v later, too)
+    # Open grid using xroms, get fancy grid variables
+    grid_xroms = xroms.open_netcdf(grd_path)
+    grid_xroms, xgrid = xroms.roms_dataset(grid_xroms, include_3D_metrics=True)
+    #print('Hz shape: ', np.shape(Hz))
+
+    # Assign coordinates to cell thickness (Hz) so xroms knows
+    Hz = Hz.assign_coords(s_rho=s_rho, eta_rho=grd.eta_rho, xi_rho=grd.xi_rho)
+    Hz["xi_rho"].attrs["axis"] = "X"
+    Hz["eta_rho"].attrs["axis"] = "Y"
+    Hz["s_rho"].attrs["axis"] = "Z"
+    # print(Hz.cf)
+    # print(Hz.cf["X"])
+    # print(Hz.cf["Y"])
+
+    # Interpolate cell thicknesses onto u points from rho points
+    dz_u = xroms.to_u(Hz, xgrid)
+
+    # Calculate ubar using initial u and cell thicknesses
+    ubar_fix = ((np.sum((ds.u[0,:,:,:].values * dz_u[:,:,:].values), axis=0)) / xroms.to_u(grid_xroms.h, xgrid))
+    
+    # Make a new version of ubar that has the right shape
+    ini_ubar_fix = np.empty((1, grd.dims['eta_u'], grd.dims['xi_u']))
+    
+    # Fill with the values
+    ini_ubar_fix[0,:,:] = ubar_fix
+    
+    # Save this to the variable 
+    ds['ubar'].values = ini_ubar_fix
+    # ----- End ubar fix -----
+    
     ds['vbar'] = xr.DataArray(np.zeros((1, grd.dims['eta_v'], grd.dims['xi_v'])),
                               dims=['ocean_time', 'eta_v', 'xi_v'],
                               attrs={'units': 'm s-1'})
@@ -218,7 +254,7 @@ def make_ini_no_ice(output='/global/homes/b/bundzis/Projects/Beaufort_ROMS_ideal
     ds.to_netcdf(output)
 
 def add_ice_to_ic(ini_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_500m_span_300km_004.nc', # Manually change here depending on resolution
-                  ini_modified_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_004.nc'): # Manually change here depending on resolution
+                  ini_modified_path = '/global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_004_TEST.nc'): # Manually change here depending on resolution
     '''
     Adds ice variables to initial condition files. Currently, the model will start from an ice-free state,
     so all values are set to zero! 
