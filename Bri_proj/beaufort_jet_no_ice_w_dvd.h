@@ -7,19 +7,30 @@
 #define BEAUFORT_JET_NO_ICE_W_DVD
 
 /* Basic dynamics */
+/* Activate UV advection terms */
 #define UV_ADV
+/* Activate Coriolos term */
 #define UV_COR
+/* Activate logarithmic bottom friction */
 #define UV_LOGDRAG
 
 #define SALINITY
 #define SOLVE3D
-#define SPLINES_VVISC
-#define SPLINES_VDIFF
-#define ASSUMED_SHAPE
 
+/* Nonlinear equation of state */
+#undef NONLIN_EOS
+/* Splines reconstruction of vertical viscosity */
+#undef SPLINES_VVISC
+/* Splines reconstructions of vertical diffusion  */
+#undef SPLINES_VDIFF
+/* ? */
+#define ASSUMED_SHAPE
+/* I don't think this is a real option anymore so consider deleting */
 #undef SPLINES
+/* If using land/sea masking */
 #undef MASKING
 
+/* If writing out time-averaged data */
 #define AVERAGES
 
 /* Turbulence Closure/Vertical Mixing */
