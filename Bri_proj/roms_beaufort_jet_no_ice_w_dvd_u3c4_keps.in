@@ -227,6 +227,8 @@ ad_VolCons(south) ==  F                            ! southern boundary
 ad_VolCons(north) ==  F                            ! northern boundary
 
 ! Time-Stepping parameters.
+! For DT = 30.0d0, do NTIMES = 345600 (120 days), NDTFAST = 20
+! For DT = 15.0d0, do NTIMES = 691200 (120 days), NDFAST = 20
 
       NTIMES == 345600       ! 120 days with DT = 30
           DT == 30.0d0       ! 5.0d0
@@ -255,10 +257,12 @@ ad_VolCons(north) ==  F                            ! northern boundary
          NCV =  10                              ! Number of eigenvectors
 
 ! Input/Output parameters.
+! For DT = 30.0d0, do NRST = 2880 (every day), NINFO=NHIS=NAVG= 240 (every 2 hours), NDEF*= 172800 (every 60 days)
+! For DT = 15.0d0, do NRST = 5760 (every day), NINFO=NHIS=NAVG= 480 (every 2 hours), NDEF*= 345600 (every 60 days)
 
        NRREC == 0
    LcycleRST == T
-        NRST == 2880 ! every day with DT=30.0
+        NRST == 2880 ! every day 
         NSTA == 1
         NFLT == 240 ! Every 2 hours
        NINFO == 240
@@ -1108,8 +1112,8 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
 ! Input NetCDF file names, [1:Ngrids].
 
-     GRDNAME == /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_002.nc
-     ININAME == /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_004.nc
+     GRDNAME == /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_002.nc ! /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_002_constbathy.nc;  /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/grd_500m_span_300km_002.nc
+     ININAME == /global/homes/b/bundzis/Projects/Beaufort_ROMS_idealized_jet_updated/Include/ini_ice_500m_span_300km_004_fixed_ubar.nc
      ITLNAME == roms_itl.nc
      IRPNAME == roms_irp.nc
      IADNAME == roms_iad.nc
@@ -1203,15 +1207,15 @@ PIO_I2C_Preq = 65                 ! Maximum pending I2C requests
 
      DAINAME == roms_dai.nc
      GSTNAME == roms_gst.nc
-     RSTNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_rst_no_ice_500m_span_300km_w_dvd_u3c4_keps_v01.nc
-     HISNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_his_no_ice_500m_span_300km_w_dvd_u3c4_keps_v01.nc
+     RSTNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_rst_no_ice_500m_span_300km_w_dvd_u3c4_keps_v04.nc
+     HISNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_his_no_ice_500m_span_300km_w_dvd_u3c4_keps_v04.nc
      XTRNAME == roms_xtr.nc
      QCKNAME == roms_qck.nc
      TLMNAME == roms_tlm.nc
      TLFNAME == roms_tlf.nc
      ADJNAME == roms_adj.nc
      HARNAME == roms_har.nc
-     AVGNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_avg_no_ice_500m_span_300km_w_dvd_u3c4_keps_v01.nc
+     AVGNAME == /pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_avg_no_ice_500m_span_300km_w_dvd_u3c4_keps_v04.nc
      DIANAME == roms_dia.nc
      STANAME == roms_sta.nc
      FLTNAME == roms_flt.nc
