@@ -1,21 +1,25 @@
 #!/bin/bash
-#SBATCH --job-name=calculate_save_num_phys_mixing_u3c4_keps_updated        #Set the job name to "JobExample1"
+#SBATCH --job-name=calculate_save_num_phys_mixing_u3c4_keps        #Set the job name to "JobExample1"
 #SBATCH -C cpu
 #SBATCH --qos=regular 
 #SBATCH --time=21:00:00          
 #SBATCH --nodes=1
 #SBATCH --ntasks=128
 #SBATCH --ntasks-per-node=128
-#SBATCH --account=m4572
-#SBATCH --output=calculate_save_num_phys_mixing_u3c4_keps_updated_001.out         #Send stdout/err to "Example1Out.[jobID]"
+#SBATCH --account=m4304
+#SBATCH --output=calculate_save_num_phys_mixing_u3c4_keps_hycomini_001.out         #Send stdout/err to "Example1Out.[jobID]"
 
 module load conda
 conda activate xroms
 
 # Define variables
 # UPDATED
-INPUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_avg_ice_500m_span_300km_w_dvd_u3c4_keps_v03_0001.nc'
-OUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/Post_process_data/Mixing/roms_num_phys_mixing_2hr_500m_const_forc_u3c4_keps_updated_001.nc'
+#INPUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_avg_ice_500m_span_300km_w_dvd_u3c4_keps_v03_0001.nc'
+#OUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/Post_process_data/Mixing/roms_num_phys_mixing_2hr_500m_const_forc_u3c4_keps_updated_001.nc'
+
+# NEWER (realistic initial conditions from HYCOM)
+INPUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/roms_avg_ice_500m_span_300km_w_dvd_u3c4_keps_hycomini_v01_*.nc'
+OUT_PATH='/pscratch/sd/b/bundzis/Beaufort_ROMS_idealized_jet_updated_scratch/Post_process_data/Mixing/roms_num_phys_mixing_2hr_500m_u3c4_keps_hycomini_v01_001.nc'
 
 # Call the python script
 python3 calculate_save_num_phys_mixing.py \
